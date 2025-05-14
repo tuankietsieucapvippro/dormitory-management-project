@@ -1,0 +1,13 @@
+[
+  {
+    "name": "default",
+    "type": "postgres",
+    "host": "localhost",
+    "port": 5432,
+    "username": "postgres",
+    "password": "1234",
+    "database": "dormitory_data2",
+    "synchronize": false,
+    "entities": ["modules/**/entities/*.entity.js"]
+  }
+]
