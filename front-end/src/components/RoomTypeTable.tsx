@@ -199,7 +199,7 @@ const RoomTypeTable = ({ searchTerm }: RoomTypeTableProps) => {
                     <div className="flex gap-2">
                       <button
                         onClick={() =>
-                          navigate(`/room-type/edit/${roomType.roomtypeid}`)
+                          navigate(`/admin/room-type/edit/${roomType.roomtypeid}`)
                         }
                         className="text-yellow-500 hover:text-yellow-400"
                       >
@@ -207,7 +207,7 @@ const RoomTypeTable = ({ searchTerm }: RoomTypeTableProps) => {
                       </button>
                       <button
                         onClick={() =>
-                          navigate(`/room-type/${roomType.roomtypeid}`)
+                          navigate(`/admin/room-type/${roomType.roomtypeid}`)
                         }
                         className="text-blue-500 hover:text-blue-400"
                       >

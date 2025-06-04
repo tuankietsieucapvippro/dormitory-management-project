@@ -1,8 +1,8 @@
-import { IsNotEmpty, IsEmail, Length, IsEnum, IsDateString, IsOptional, Matches } from 'class-validator';
+import { IsNotEmpty, IsEmail, Length, IsEnum, IsDateString, IsOptional, Matches, IsInt, IsPositive } from 'class-validator';
 
 enum Gender {
-  Male = 'Male',
-  Female = 'Female'
+  Male = 'male',
+  Female = 'female'
 }
 
 enum StudentStatus {
@@ -12,6 +12,13 @@ enum StudentStatus {
 }
 
 export class CreateStudentDto {
+  // accountid sẽ được cung cấp bởi RoomRegistrationController sau khi Account được tạo
+  // Nó không được gửi trực tiếp từ client khi đăng ký, nhưng cần thiết khi StudentService.create được gọi từ RoomRegistrationController
+  @IsInt({ message: 'Account ID phải là số nguyên' })
+  @IsPositive({ message: 'Account ID phải là số dương' })
+  // @IsOptional() // Bỏ optional nếu trong luồng register-with-student nó luôn được controller cung cấp
+  accountid: number;
+
   @IsNotEmpty({ message: 'Họ và tên không được để trống' })
   @Length(2, 70, { message: 'Họ và tên phải từ 2 đến 70 ký tự' })
   fullName: string;
@@ -55,5 +62,9 @@ export class CreateStudentDto {
 
   @IsOptional()
   @IsEnum(StudentStatus, { message: 'Trạng thái không hợp lệ' })
-  status: StudentStatus = StudentStatus.Pending;
+  // Sửa lại giá trị enum cho phù hợp với database constraint ('pending', 'approved', 'rejected')
+  // Hoặc đảm bảo StudentStatus enum dùng giá trị chữ thường. Hiện tại nó đang là chữ hoa chữ đầu.
+  // Tạm thời để frontend gửi 'pending' (chữ thường) và backend nhận string.
+  // Nếu muốn dùng enum chặt chẽ, cần sửa enum StudentStatus và entity Student.
+  status: string = 'pending'; // Đổi thành string và mặc định là 'pending'
 }

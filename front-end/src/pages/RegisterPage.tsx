@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { accountApi, semesterApi } from "../services/api"; // Import semesterApi
 
 axios.defaults.baseURL = "http://localhost:3000"; // Thay bằng URL thực tế của backend
 
@@ -8,6 +9,7 @@ interface Building {
   buildingid: number;
   buildingname: string;
   description: string | null;
+  hasAvailableRooms?: boolean;
 }
 
 interface Room {
@@ -17,8 +19,9 @@ interface Room {
   bedcount: number;
   roomtype: {
     roomtypeid: number;
-    typename: string;
+    roomtypename: string; // Đổi từ typename để khớp với dữ liệu API
     price: number;
+    gender: string | null; // Thêm trường gender
   };
 }
 
@@ -27,6 +30,13 @@ interface RoomType {
   typename: string;
   price: number;
   description: string | null;
+}
+
+interface Semester {
+  semesterid: number;
+  name: string;
+  startdate: string;
+  enddate: string;
 }
 
 interface FormData {
@@ -43,16 +53,19 @@ interface FormData {
   // Trường thông tin đăng ký phòng (sẽ được lưu vào bảng khác)
   buildingId: string;
   roomId: string;
-  startDate: string;
-  endDate: string;
+  // startDate: string; // Xóa
+  // endDate: string; // Xóa
   roomTypeId: string;
+  semesterId: string;
 }
 
 const RegisterPage = () => {
   const [isChecked, setIsChecked] = useState(false);
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [semesters, setSemesters] = useState<Semester[]>([]); // State cho học kỳ
+  const [loading, setLoading] = useState(false); // Chung cho buildings, rooms
+  const [loadingSemesters, setLoadingSemesters] = useState(false); // Riêng cho semesters
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
@@ -67,24 +80,52 @@ const RegisterPage = () => {
     idCard: "",
     buildingId: "",
     roomId: "",
-    startDate: "",
-    endDate: "",
+    // startDate: "", // Xóa
+    // endDate: "", // Xóa
     roomTypeId: "",
-  });
+    semesterId: "",
+    });
   const [invalidFields, setInvalidFields] = useState<string[]>([]);
   const [submitMessage, setSubmitMessage] = useState("");
   const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
   const [accountCreated, setAccountCreated] = useState(false);
+  const [roomTypeName, setRoomTypeName] = useState<string>("");
 
   // Lấy danh sách tòa nhà khi component được mount
   useEffect(() => {
+    const updateBuildingAvailability = async (buildingsToUpdate: Building[]) => {
+      const updatedBuildings = await Promise.all(
+        buildingsToUpdate.map(async (building) => {
+          try {
+            const response = await axios.get(
+              `/rooms/available-by-building/${building.buildingid}`,
+            );
+            return {
+              ...building,
+              hasAvailableRooms: response.data && response.data.data && response.data.data.length > 0,
+            };
+          } catch (err) {
+            console.error(
+              `Lỗi khi kiểm tra phòng trống cho tòa nhà ${building.buildingid}:`,
+              err,
+            );
+            return { ...building, hasAvailableRooms: false }; // Mặc định là false nếu có lỗi
+          }
+        }),
+      );
+      setBuildings(updatedBuildings);
+    };
+
     const fetchBuildings = async () => {
       setLoading(true);
       setError(null);
       try {
         const response = await axios.get("/buildings");
         if (response.data && response.data.data) {
+          // Tạm thời setBuildings để UI không bị trống quá lâu
           setBuildings(response.data.data);
+          // Sau đó cập nhật thông tin phòng trống
+          await updateBuildingAvailability(response.data.data);
         }
       } catch (err) {
         console.error("Lỗi khi lấy danh sách tòa nhà:", err);
@@ -96,7 +137,7 @@ const RegisterPage = () => {
 
     const fetchRoomTypes = async () => {
       try {
-        const response = await axios.get("/room-type");
+        const response = await axios.get("/room-types");
         if (response.data && response.data.data) {
           setRoomTypes(response.data.data);
         }
@@ -105,20 +146,60 @@ const RegisterPage = () => {
       }
     };
 
+    const fetchSemesters = async () => {
+      setLoadingSemesters(true);
+      try {
+        const response = await semesterApi.getAll(); // Hoặc getActive() / getLatest()
+        if (response.data) { // Giả sử API trả về mảng trực tiếp hoặc trong response.data
+          // Nếu API trả về trong response.data.data như các API khác:
+          // if (response.data && response.data.data) { setSemesters(response.data.data); }
+          setSemesters(response.data.data || response.data); // Điều chỉnh tùy theo cấu trúc API semesters trả về
+
+          // Tìm và đặt học kỳ mặc định
+          const defaultSemesterName = "2025-2026 HK1";
+          const fetchedSemesters = response.data.data || response.data;
+          const defaultSemester = fetchedSemesters.find(
+            (semester: Semester) => semester.name === defaultSemesterName
+          );
+
+          if (defaultSemester) {
+            setFormData((prev) => ({
+              ...prev,
+              semesterId: defaultSemester.semesterid.toString(),
+            }));
+          }
+
+          // Tùy chọn: Tự động chọn học kỳ đang hoạt động/gần nhất nếu có
+          // const activeSemester = response.data.data.find(s => new Date(s.startdate) <= new Date() && new Date(s.enddate) >= new Date());
+          // if (activeSemester) {
+          //   setFormData(prev => ({...prev, semesterId: activeSemester.semesterid.toString()}));
+          // }
+        }
+      } catch (err) {
+        console.error("Lỗi khi lấy danh sách học kỳ:", err);
+        setError((prevError) => prevError ? `${prevError}\nKhông thể lấy danh sách học kỳ.` : "Không thể lấy danh sách học kỳ.");
+      } finally {
+        setLoadingSemesters(false);
+      }
+    };
+
     fetchBuildings();
     fetchRoomTypes();
+    fetchSemesters();
   }, []);
 
   // Lấy danh sách phòng trống khi người dùng chọn tòa nhà
   useEffect(() => {
-    if (formData.buildingId) {
+    if (formData.buildingId && formData.gender) { // Thêm formData.gender vào điều kiện
       const fetchAvailableRooms = async () => {
         try {
           const response = await axios.get(
             `/rooms/available-by-building/${formData.buildingId}`,
           );
           if (response.data && response.data.data) {
-            setAvailableRooms(response.data.data);
+            setAvailableRooms(response.data.data as Room[]); // Hoàn tác việc lọc ở đây
+          } else {
+            setAvailableRooms([]);
           }
         } catch (err) {
           console.error("Lỗi khi lấy danh sách phòng trống:", err);
@@ -128,22 +209,39 @@ const RegisterPage = () => {
 
       fetchAvailableRooms();
     } else {
-      setAvailableRooms([]);
+      setAvailableRooms([]); // Reset nếu không có buildingId hoặc gender
     }
-  }, [formData.buildingId]);
+  }, [formData.buildingId, formData.gender]); // Thêm formData.gender vào dependencies
 
   // Tự động điền roomTypeId khi chọn phòng
   useEffect(() => {
     if (formData.roomId && availableRooms.length > 0) {
+      console.log("[RegisterPage] Selected Room ID from formData:", formData.roomId);
+      console.log("[RegisterPage] Current availableRooms:", availableRooms);
       const selectedRoom = availableRooms.find(
         (room) => room.roomid.toString() === formData.roomId,
       );
-      if (selectedRoom && selectedRoom.roomtype) {
+      console.log("[RegisterPage] Found selectedRoom object:", selectedRoom);
+
+      if (selectedRoom && selectedRoom.roomtype && typeof selectedRoom.roomtype.roomtypeid !== 'undefined' && typeof selectedRoom.roomtype.roomtypename !== 'undefined') { // Thay typename -> roomtypename
+        console.log("[RegisterPage] Valid roomtype found in selectedRoom:", selectedRoom.roomtype);
         setFormData((prev) => ({
           ...prev,
           roomTypeId: selectedRoom.roomtype.roomtypeid.toString(),
         }));
+        setRoomTypeName(selectedRoom.roomtype.roomtypename); // Thay typename -> roomtypename
+      } else {
+        console.warn("[RegisterPage] RoomType information is missing for the selected room, or roomtype object is incomplete. Resetting room type.", "Selected Room:", selectedRoom);
+        setRoomTypeName(""); // Reset nếu thông tin loại phòng bị thiếu
+        setFormData((prev) => ({ ...prev, roomTypeId: "" }));
       }
+    } else {
+      // Reset nếu không có phòng nào được chọn hoặc availableRooms rỗng
+      if (formData.roomId) { // Chỉ log nếu có roomId nhưng không có availableRooms
+        console.log("[RegisterPage] formData.roomId is set, but availableRooms is empty or not ready. Resetting room type.");
+      }
+      setRoomTypeName("");
+      setFormData((prev) => ({ ...prev, roomTypeId: "" }));
     }
   }, [formData.roomId, availableRooms]);
 
@@ -188,105 +286,146 @@ const RegisterPage = () => {
   };
 
   // Hàm tạo tài khoản cho sinh viên
-  const createStudentAccount = async (studentCode: string, idCard: string) => {
+  const createStudentAccount = async (studentCode: string, idCard: string): Promise<number | null> => {
     try {
-      // Tạo tài khoản với username là mã sinh viên và password là CMND/CCCD
       const accountData = {
         username: studentCode,
         password: idCard,
-        roleId: 8, // ID của role "sinh viên"
+        roleId: 8, // ID của role "sinh viên" - Cần đảm bảo roleId này là chính xác
       };
+      console.log("[RegisterPage] Creating student account with data:", accountData);
+      const response = await accountApi.create(accountData);
+      console.log("[RegisterPage] Response from accountApi.create:", JSON.stringify(response, null, 2));
 
-      const response = await axios.post("/accounts", accountData);
-
-      if (response.data && response.data.statusCode === 201) {
-        console.log("Tài khoản sinh viên được tạo thành công:", response.data);
-        setAccountCreated(true);
-        return true;
+      // Giả định API trả về accountid trong response.data.data.accountid hoặc response.data.accountid
+      if (response.data && (response.data.statusCode === 201 || response.data.success === true)) { // Kiểm tra cả statusCode và success nếu API trả về khác nhau
+        const createdAccount = response.data.data || response.data; // Tùy thuộc vào cấu trúc response
+        console.log("[RegisterPage] Extracted createdAccount object:", JSON.stringify(createdAccount, null, 2));
+        if (createdAccount && typeof createdAccount.accountid === 'number') {
+          console.log("[RegisterPage] Tài khoản sinh viên được tạo thành công, accountId:", createdAccount.accountid);
+          setAccountCreated(true); // Vẫn có thể giữ state này nếu cần cho UI
+          return createdAccount.accountid;
+        } else {
+          console.error("Lỗi: API tạo tài khoản không trả về accountid hợp lệ.", response.data);
+          setSubmitMessage("Lỗi khi tạo tài khoản: Không nhận được ID tài khoản.");
+          return null;
+        }
       } else {
-        console.error("Lỗi khi tạo tài khoản sinh viên:", response.data);
-        return false;
+        console.error("Lỗi khi tạo tài khoản sinh viên từ API:", response.data);
+        const errorMessage = response.data?.message || "Không thể tạo tài khoản.";
+        setSubmitMessage(`Lỗi khi tạo tài khoản: ${errorMessage}`);
+        return null;
       }
-    } catch (error) {
-      console.error("Lỗi khi tạo tài khoản sinh viên:", error);
-      return false;
+    } catch (error: any) {
+      console.error("Lỗi ngoại lệ khi tạo tài khoản sinh viên:", error);
+      const errorMessage = error.response?.data?.message || error.message || "Lỗi không xác định khi tạo tài khoản.";
+      setSubmitMessage(`Lỗi ngoại lệ khi tạo tài khoản: ${errorMessage}`);
+      return null;
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
+      setSubmitMessage(""); // Reset submit message
+      setError(null); // Reset error message
+
       try {
-        // Dữ liệu cho cả sinh viên và đăng ký phòng
-        const registerData = {
-          student: {
-            fullName: formData.fullName,
-            studentCode: formData.studentCode,
-            class: formData.class,
-            gender: formData.gender,
-            dateOfBirth: formData.dateOfBirth,
-            birthplace: formData.birthplace,
-            address: formData.address,
-            email: formData.email,
-            phoneNumber: formData.phoneNumber,
-            idCard: formData.idCard,
-            status: "Pending", // Mặc định là đang chờ xét duyệt
-          },
-          registration: {
-            buildingId: parseInt(formData.buildingId),
-            roomId: parseInt(formData.roomId),
-            startDate: formData.startDate,
-            endDate: formData.endDate,
-            roomTypeId: parseInt(formData.roomTypeId),
-            status: "Pending",
-          },
-        };
-
-        // Gửi request đến API đăng ký kết hợp
-        const response = await axios.post(
-          "/room-registration/register-with-student",
-          registerData,
+        // Bước 1: Tạo tài khoản sinh viên trước
+        const newAccountId = await createStudentAccount(
+          formData.studentCode,
+          formData.idCard,
         );
+        console.log("[RegisterPage] newAccountId from createStudentAccount:", newAccountId);
 
-        if (response.data) {
-          // Tạo tài khoản cho sinh viên
-          const accountCreated = await createStudentAccount(
-            formData.studentCode,
-            formData.idCard,
+        if (newAccountId) {
+          // Bước 2: Nếu tài khoản được tạo thành công, tiến hành đăng ký thông tin sinh viên và phòng
+          const registerData = {
+            student: {
+              accountid: newAccountId, // Thêm accountid vào đây
+              fullName: formData.fullName,
+              studentCode: formData.studentCode,
+              class: formData.class,
+              gender: formData.gender,
+              dateOfBirth: formData.dateOfBirth,
+              birthplace: formData.birthplace,
+              address: formData.address,
+              email: formData.email,
+              phoneNumber: formData.phoneNumber,
+              idCard: formData.idCard,
+              status: "pending",
+            },
+            registration: {
+              buildingId: parseInt(formData.buildingId),
+              roomId: parseInt(formData.roomId),
+              roomTypeId: parseInt(formData.roomTypeId),
+              semesterId: parseInt(formData.semesterId),
+              status: "pending",
+            },
+          };
+          console.log("[RegisterPage] Sending data to /room-registration/register-with-student:", JSON.stringify(registerData, null, 2));
+
+          // Gửi request đến API đăng ký kết hợp
+          const registrationResponse = await axios.post(
+            "/room-registration/register-with-student",
+            registerData,
           );
+          console.log("[RegisterPage] Response from /room-registration/register-with-student:", JSON.stringify(registrationResponse, null, 2));
 
-          let successMessage =
-            "Đăng ký thành công! Vui lòng chờ quản trị viên xét duyệt.";
-
-          if (accountCreated) {
+          if (registrationResponse.data) {
+            let successMessage =
+              "Đăng ký thành công! Vui lòng chờ quản trị viên xét duyệt.";
             successMessage +=
               " Tài khoản đã được tạo với tên đăng nhập là mã sinh viên và mật khẩu là số CMND/CCCD của bạn.";
+            setSubmitMessage(successMessage);
+
+            // Reset form sau khi đăng ký thành công
+            setFormData({
+              fullName: "",
+              studentCode: "",
+              class: "",
+              gender: "",
+              dateOfBirth: "",
+              birthplace: "",
+              address: "",
+              email: "",
+              phoneNumber: "",
+              idCard: "",
+              buildingId: "",
+              roomId: "",
+              roomTypeId: "",
+              semesterId: "", // Giữ lại semesterId đã chọn và disable
+            });
+            // Tìm lại semesterId mặc định để set lại sau khi reset, vì nó bị disable
+            const defaultSemester = semesters.find(s => s.name === "2025-2026 HK1");
+            if (defaultSemester) {
+                setFormData(prev => ({...prev, semesterId: defaultSemester.semesterid.toString()}));
+            }
+            setRoomTypeName("");
+            setIsChecked(false); // Reset checkbox
+          } else {
+            // Xử lý trường hợp API đăng ký sinh viên/phòng không thành công dù tài khoản đã tạo
+            // Có thể cần một cơ chế rollback hoặc thông báo cho người dùng/admin
+            setSubmitMessage("Tạo tài khoản thành công, nhưng đăng ký thông tin phòng thất bại. Vui lòng liên hệ quản trị viên.");
           }
-
-          setSubmitMessage(successMessage);
-
-          // Reset form sau khi đăng ký thành công
-          setFormData({
-            fullName: "",
-            studentCode: "",
-            class: "",
-            gender: "",
-            dateOfBirth: "",
-            birthplace: "",
-            address: "",
-            email: "",
-            phoneNumber: "",
-            idCard: "",
-            buildingId: "",
-            roomId: "",
-            startDate: "",
-            endDate: "",
-            roomTypeId: "",
-          });
+        } else {
+          // createStudentAccount đã setSubmitMessage lỗi rồi, không cần set lại ở đây
+          // setSubmitMessage("Không thể tạo tài khoản sinh viên. Vui lòng thử lại.");
         }
-      } catch (error) {
-        console.error("Lỗi khi đăng ký:", error);
-        setSubmitMessage("Đã xảy ra lỗi khi đăng ký. Vui lòng thử lại sau.");
+      } catch (error: any) {
+        console.error("Lỗi trong quá trình handleSubmit:", error);
+        if (axios.isAxiosError(error) && error.response) {
+          if (error.response.status === 409) {
+            setSubmitMessage(
+              error.response.data?.message ||
+              "Đăng ký không thành công. Sinh viên này đã có một đăng ký phòng đang chờ xử lý hoặc đã được duyệt. Vui lòng kiểm tra lại hoặc liên hệ quản trị viên."
+            );
+          } else {
+            setSubmitMessage(`Lỗi khi đăng ký: ${error.response.data?.message || "Lỗi không xác định từ máy chủ."}`);
+          }
+        } else {
+          setSubmitMessage("Đã xảy ra lỗi không xác định trong quá trình đăng ký. Vui lòng thử lại sau.");
+        }
       }
     }
   };
@@ -326,7 +465,7 @@ const RegisterPage = () => {
   const renderSelect = (
     name: keyof FormData,
     label: string,
-    options: { value: string; label: string }[],
+    options: { value: string; label: string; disabled?: boolean }[],
     required: boolean = false,
     disabled: boolean = false,
   ) => (
@@ -352,7 +491,7 @@ const RegisterPage = () => {
       >
         <option value="">Chọn {label}</option>
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option key={option.value} value={option.value} disabled={option.disabled}>
             {option.label}
           </option>
         ))}
@@ -416,7 +555,8 @@ const RegisterPage = () => {
                 "Tòa nhà",
                 buildings.map((building) => ({
                   value: building.buildingid.toString(),
-                  label: `${building.buildingname} - ${building.description || "Không có mô tả"}`,
+                  label: `${building.buildingname} - ${building.description || "Không có mô tả"} ${building.hasAvailableRooms === false ? "(Hết phòng)" : ""}`,
+                  disabled: building.hasAvailableRooms === false,
                 })),
                 true,
               )
@@ -427,10 +567,33 @@ const RegisterPage = () => {
                 renderSelect(
                   "roomId",
                   "Phòng",
-                  availableRooms.map((room) => ({
-                    value: room.roomid.toString(),
-                    label: `${room.roomname} - ${room.bedcount} giường`,
-                  })),
+                  availableRooms.map((room) => {
+                    const studentSelectedGender = formData.gender; // "Male" hoặc "Female"
+                    const roomGenderAPI = room.roomtype?.gender;    // "male", "female", "Nam", "Nữ", null
+                    let isDisabled = room.status === "Full"; // Vẫn disable nếu phòng đã đầy
+
+                    if (!isDisabled && studentSelectedGender && roomGenderAPI) {
+                      const studentGenderNormalized = studentSelectedGender.toLowerCase(); // "male" hoặc "female"
+                      const roomGenderNormalized = roomGenderAPI.toLowerCase();
+
+                      if (studentGenderNormalized === "male") { // Sinh viên là Nam (male)
+                        // Disable nếu phòng là Nữ (female hoặc nữ)
+                        if (roomGenderNormalized === "female" || roomGenderNormalized === "nữ") {
+                          isDisabled = true;
+                        }
+                      } else if (studentGenderNormalized === "female") { // Sinh viên là Nữ (female)
+                        // Disable nếu phòng là Nam (male hoặc nam)
+                        if (roomGenderNormalized === "male" || roomGenderNormalized === "nam") {
+                          isDisabled = true;
+                        }
+                      }
+                    }
+                    return {
+                      value: room.roomid.toString(),
+                      label: `${room.roomname} - ${room.bedcount} giường ${room.status === "Full" ? "(Đầy)" : ""} (${roomGenderAPI || 'N/A'})`,
+                      disabled: isDisabled,
+                    };
+                  }),
                   true,
                 )
               ) : (
@@ -445,11 +608,35 @@ const RegisterPage = () => {
                 </div>
               ))}
 
-            {renderInput("startDate", "Ngày bắt đầu", "date", true)}
-            {renderInput("endDate", "Ngày kết thúc", "date", true)}
+            {loadingSemesters ? (
+              <div className="text-center">Đang tải danh sách học kỳ...</div>
+            ) : (
+              renderSelect(
+                "semesterId",
+                "Học kỳ",
+                semesters.map((semester) => ({
+                  value: semester.semesterid.toString(),
+                  label: semester.name,
+                })),
+                true, // required
+                true, // disabled
+              )
+            )}
+
+            {/* Xóa input cho Ngày bắt đầu và Ngày kết thúc */}
+            {/* {renderInput("startDate", "Ngày bắt đầu", "date", true)} */}
+            {/* {renderInput("endDate", "Ngày kết thúc", "date", true)} */}
 
             {/* Hiển thị thông tin loại phòng dựa trên phòng đã chọn */}
-            {renderInput("roomTypeId", "Loại phòng", "text", true, true)}
+            <div className="flex items-center gap-2">
+              <label className="w-32">Loại phòng *</label>
+              <input
+                type="text"
+                value={roomTypeName || "Chưa chọn phòng"}
+                disabled
+                className="w-full rounded-lg border-2 border-transparent bg-[#130f21] p-2 opacity-70"
+              />
+            </div>
 
             {formData.roomTypeId && selectedRoomType && (
               <div className="mt-2 rounded-lg border border-gray-700 p-3">

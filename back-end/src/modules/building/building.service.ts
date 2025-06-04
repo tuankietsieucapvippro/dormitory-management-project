@@ -123,7 +123,7 @@ export class BuildingService {
     const building = await this.buildingRepository.createQueryBuilder('building')
       .leftJoinAndSelect('building.rooms', 'room')
       .where('building.buildingid = :id', { id: buildingId })
-      .andWhere('room.status = :status', { status: 'Available' })
+      .andWhere('room.status = :status', { status: 'available' })
       .getOne();
 
     if (!building) {

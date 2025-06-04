@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { accountApi } from "../services/api";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -39,10 +39,7 @@ const LoginPage = () => {
     }
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/accounts/login",
-        formData,
-      );
+      const response = await accountApi.login(formData);
       if (response.data && response.data.data) {
         localStorage.setItem("user", JSON.stringify(response.data.data));
 

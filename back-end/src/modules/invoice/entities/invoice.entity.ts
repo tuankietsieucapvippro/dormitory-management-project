@@ -5,6 +5,7 @@ import {
     JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
+    Check
   } from "typeorm";
   import { PriceList } from "../../price-list/entities/price-list.entity";
   import { Room } from "../../room/entities/room.entity";
@@ -12,6 +13,8 @@ import {
   
   @Index("invoice_pkey", ["invoiceid"], { unique: true })
   @Entity("invoice", { schema: "public" })
+  @Check("electricitypriceid IS NOT NULL OR waterpriceid IS NOT NULL")
+  @Check("status IN ('unpaid', 'paid')")
   export class Invoice {
     @PrimaryGeneratedColumn({ type: "integer", name: "invoiceid" })
     invoiceid: number;

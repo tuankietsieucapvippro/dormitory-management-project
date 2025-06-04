@@ -10,7 +10,7 @@ import {
   
   @Index("roomtype_pkey", ["roomtypeid"], { unique: true })
   @Entity("roomtype", { schema: "public" })
-  @Check("gender IN ('Male', 'Female')")
+  @Check("gender IN ('male', 'female')")
   @Check("price >= 0")
   export class RoomType {
     @PrimaryGeneratedColumn({ type: "integer", name: "roomtypeid" })

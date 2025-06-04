@@ -106,7 +106,7 @@ const BuildingTable = ({ searchTerm }: BuildingTableProps) => {
                   <div className="flex gap-2">
                     <button
                       onClick={() =>
-                        navigate(`/building/edit/${building.buildingid}`)
+                        navigate(`/admin/building/edit/${building.buildingid}`)
                       }
                       className="text-yellow-500"
                     >
@@ -114,7 +114,7 @@ const BuildingTable = ({ searchTerm }: BuildingTableProps) => {
                     </button>
                     <button
                       onClick={() =>
-                        navigate(`/building/${building.buildingid}`)
+                        navigate(`/admin/building/${building.buildingid}`)
                       }
                       className="text-blue-500"
                     >

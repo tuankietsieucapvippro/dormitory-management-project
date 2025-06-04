@@ -167,7 +167,7 @@ const StudentDetailPage = () => {
             </pre>
           </div>
           <button
-            onClick={() => navigate("/student")}
+            onClick={() => navigate("/admin/student")}
             className="rounded-lg bg-blue-500 px-6 py-2 font-medium hover:bg-blue-600"
           >
             Quay lại danh sách sinh viên
@@ -183,7 +183,7 @@ const StudentDetailPage = () => {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Thông tin sinh viên</h1>
           <button
-            onClick={() => navigate("/student")}
+            onClick={() => navigate("/admin/student")}
             className="rounded bg-blue-500 px-4 py-2 hover:bg-blue-600"
           >
             Quay lại

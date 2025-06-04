@@ -183,7 +183,7 @@ const RoomTypeDetailPage = () => {
             </pre>
           </div>
           <button
-            onClick={() => navigate("/type-room")}
+            onClick={() => navigate("/admin/room-type")}
             className="rounded-lg bg-blue-500 px-6 py-2 font-medium hover:bg-blue-600"
           >
             Quay lại danh sách loại phòng
@@ -198,7 +198,7 @@ const RoomTypeDetailPage = () => {
       <div className="flex h-full flex-col bg-[#130f21] text-[#e1dce4]">
         <div className="-mt-5 mb-2 flex items-center justify-between p-5">
           <button
-            onClick={() => navigate("/type-room")}
+            onClick={() => navigate("/admin/room-type")}
             className="rounded-lg bg-gray-500 px-4 py-2 hover:bg-gray-600"
           >
             Quay lại
@@ -294,7 +294,7 @@ const RoomTypeDetailPage = () => {
                           <td className="border border-gray-600 px-4 py-2">
                             <div className="flex gap-2">
                               <button
-                                onClick={() => navigate(`/room/${room.roomid}`)}
+                                onClick={() => navigate(`/admin/room/${room.roomid}`)}
                                 className="text-blue-500 hover:text-blue-600"
                               >
                                 Chi tiết

@@ -30,7 +30,7 @@ const BuildingPage = () => {
               </div>
             </div>
             <button
-              onClick={() => navigate("/building/create")}
+              onClick={() => navigate("/admin/building/create")}
               className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 hover:bg-blue-600"
             >
               <TbBuildingPlus />

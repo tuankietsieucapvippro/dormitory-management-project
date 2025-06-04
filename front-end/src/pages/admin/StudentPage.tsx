@@ -50,7 +50,7 @@ const StudentPage = () => {
               </div>
             </div>
             <button
-              onClick={() => navigate("/student/create")}
+              onClick={() => navigate("/")}
               className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 hover:bg-blue-600"
             >
               <BsPersonFillAdd />

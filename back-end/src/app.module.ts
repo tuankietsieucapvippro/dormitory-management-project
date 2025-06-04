@@ -11,6 +11,7 @@ import { Invoice } from './modules/invoice/entities/invoice.entity';
 import { RoomRegistration } from './modules/room-registration/entities/room-registration.entity';
 import { RoomType } from './modules/room-type/entities/room-type.entity';
 import { SystemLog } from './modules/system-log/entities/system-log.entity';
+import { Semester } from './modules/semester/entities/semester.entity'; // Import Semester entity
 import { BuildingModule } from './modules/building/building.module';
 import { RoomModule } from './modules/room/room.module';
 import { StudentModule } from './modules/student/student.module';
@@ -22,6 +23,7 @@ import { InvoiceModule } from './modules/invoice/invoice.module';
 import { RoomRegistrationModule } from './modules/room-registration/room-registration.module';
 import { RoomTypeModule } from './modules/room-type/room-type.module';
 import { SystemLogModule } from './modules/system-log/system-log.module';
+import { SemesterModule } from './modules/semester/semester.module'; // Import SemesterModule
 
 @Module({
   imports: [
@@ -32,7 +34,7 @@ import { SystemLogModule } from './modules/system-log/system-log.module';
       username: 'postgres',
       password: '1234',
       database: 'dormitory_data2',
-      entities: [Building, Room, Student, Role, PriceList, Utilities, Account, Invoice, RoomRegistration, RoomType, SystemLog],
+      entities: [Building, Room, Student, Role, PriceList, Utilities, Account, Invoice, RoomRegistration, RoomType, SystemLog, Semester], // Add Semester to entities
       synchronize: false,  // Cấu hình tự động tạo bảng (chỉ dùng trong môi trường phát triển)
     }),
     BuildingModule,
@@ -46,6 +48,7 @@ import { SystemLogModule } from './modules/system-log/system-log.module';
     RoomRegistrationModule,
     RoomTypeModule,
     SystemLogModule,
+    SemesterModule, // Add SemesterModule to imports
   ],
 })
 export class AppModule {}

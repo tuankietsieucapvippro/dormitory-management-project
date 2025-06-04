@@ -94,7 +94,7 @@ const CreateUtilitiesPage = () => {
         electricityprice: parseInt(formData.electricityprice),
         waterprice: parseInt(formData.waterprice),
       });
-      navigate("/utilities");
+      navigate("/admin/utilities");
     } catch (error) {
       console.error("Error creating utility record:", error);
       alert("An error occurred while creating the utility record");
@@ -270,7 +270,7 @@ const CreateUtilitiesPage = () => {
               </button>
               <button
                 type="button"
-                onClick={() => navigate("/utilities")}
+                onClick={() => navigate("/admin/utilities")}
                 className="rounded-lg bg-gray-500 px-6 py-2 font-medium hover:bg-gray-600"
               >
                 Cancel

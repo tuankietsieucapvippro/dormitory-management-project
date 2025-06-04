@@ -75,7 +75,7 @@ const CreateStudentPage = () => {
     e.preventDefault();
     try {
       await studentApi.create(formData);
-      navigate("/student");
+      navigate("/admin/student");
     } catch (error) {
       console.error("Có lỗi xảy ra khi tạo sinh viên:", error);
       alert("Có lỗi xảy ra khi tạo sinh viên");
@@ -270,7 +270,7 @@ const CreateStudentPage = () => {
               </button>
               <button
                 type="button"
-                onClick={() => navigate("/student")}
+                onClick={() => navigate("/admin/student")}
                 className="rounded-lg bg-gray-500 px-6 py-2 font-medium hover:bg-gray-600"
               >
                 Hủy

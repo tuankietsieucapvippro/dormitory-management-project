@@ -49,7 +49,7 @@ const RoomTypePage = () => {
               </div>
             </div>
             <button
-              onClick={() => navigate("/room-type/create")}
+              onClick={() => navigate("/admin/room-type/create")}
               className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 hover:bg-blue-600"
             >
               <TbBuildingPlus />

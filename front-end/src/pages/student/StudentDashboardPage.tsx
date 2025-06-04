@@ -24,10 +24,12 @@ interface Student {
 
 interface RoomRegistration {
   roomregistrationid: number;
-  registerdate?: string;
-  checkoutdate?: string;
+  // registerdate?: string; // Đã bị xóa ở backend
+  // checkoutdate?: string; // Đã bị xóa ở backend
+  // createdat?: string; // Không có trường này từ backend, và không sử dụng ở front-end nữa
   status: string;
   room?: Room;
+  // semester?: Semester; // Có thể thêm nếu API trả về và cần dùng
 }
 
 interface Room {
@@ -108,7 +110,7 @@ const StudentDashboardPage = () => {
         } else if (!studentData.roomregistrations) {
           studentData.roomregistrations = [];
         }
-
+        console.log("[StudentDashboardPage] Fetched studentData:", JSON.stringify(studentData, null, 2)); // Log dữ liệu student
         setStudent(studentData);
       } catch (error: any) {
         console.error("Có lỗi xảy ra khi lấy thông tin sinh viên:", error);
@@ -355,10 +357,6 @@ const StudentDashboardPage = () => {
                           label="Phòng"
                           value={pendingRoom.room.roomname}
                         />
-                        <InfoItem
-                          label="Tầng"
-                          value={pendingRoom.room.floor?.toString()}
-                        />
                       </div>
                       <div>
                         <InfoItem
@@ -375,14 +373,11 @@ const StudentDashboardPage = () => {
                               : "---"
                           }
                         />
-                        <InfoItem
+                        {/* Bỏ hiển thị ngày đăng ký cho pendingRoom */}
+                        {/* <InfoItem
                           label="Ngày đăng ký"
-                          value={
-                            pendingRoom.registerdate
-                              ? formatDate(pendingRoom.registerdate)
-                              : "---"
-                          }
-                        />
+                          value={"---"}
+                        /> */}
                       </div>
                     </div>
                   ) : (
@@ -418,10 +413,6 @@ const StudentDashboardPage = () => {
                           value={currentRoom.room.roomname}
                         />
                         <InfoItem
-                          label="Tầng"
-                          value={currentRoom.room.floor?.toString()}
-                        />
-                        <InfoItem
                           label="Loại phòng"
                           value={currentRoom.room.roomtype?.roomtypename}
                         />
@@ -437,21 +428,14 @@ const StudentDashboardPage = () => {
                               : "---"
                           }
                         />
-                        <InfoItem
+                        {/* Bỏ hiển thị ngày đăng ký cho currentRoom */}
+                        {/* <InfoItem
                           label="Ngày đăng ký"
-                          value={
-                            currentRoom.registerdate
-                              ? formatDate(currentRoom.registerdate)
-                              : "---"
-                          }
-                        />
+                          value={"---"}
+                        /> */}
                         <InfoItem
                           label="Ngày hết hạn"
-                          value={
-                            currentRoom.checkoutdate
-                              ? formatDate(currentRoom.checkoutdate)
-                              : "---"
-                          }
+                          value={"---"}
                         />
                         <InfoItem
                           label="Trạng thái phòng"
@@ -463,7 +447,7 @@ const StudentDashboardPage = () => {
                     <p className="text-gray-400">Không có thông tin phòng</p>
                   )}
                 </div>
-              ) : (
+              ) : !pendingRoom ? ( // Chỉ hiển thị khi không có currentRoom VÀ không có pendingRoom
                 <div className="rounded-lg bg-[#201b39] p-6">
                   <h2 className="mb-4 text-xl font-semibold">
                     Thông tin phòng
@@ -481,7 +465,7 @@ const StudentDashboardPage = () => {
                     </button>
                   </div>
                 </div>
-              )}
+              ) : null}
             </div>
           )}
 
@@ -504,11 +488,10 @@ const StudentDashboardPage = () => {
                         {currentRoom.room?.roomname} tại tòa{" "}
                         {currentRoom.room?.building?.buildingname}.
                       </p>
-                      <p className="mt-2 text-sm text-gray-400">
-                        {currentRoom.registerdate
-                          ? formatDate(currentRoom.registerdate)
-                          : "---"}
-                      </p>
+                      {/* Bỏ hiển thị ngày đăng ký trong thông báo */}
+                      {/* <p className="mt-2 text-sm text-gray-400">
+                        Ngày đăng ký: {"---"}
+                      </p> */}
                     </div>
 
                     <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
@@ -533,11 +516,10 @@ const StudentDashboardPage = () => {
                       Đăng ký phòng của bạn đang được xem xét. Chúng tôi sẽ
                       thông báo kết quả sớm nhất.
                     </p>
-                    <p className="mt-2 text-sm text-gray-400">
-                      {pendingRoom.registerdate
-                        ? formatDate(pendingRoom.registerdate)
-                        : formatDate(new Date().toISOString())}
-                    </p>
+                     {/* Bỏ hiển thị ngày tạo yêu cầu trong thông báo */}
+                    {/* <p className="mt-2 text-sm text-gray-400">
+                      Ngày tạo yêu cầu: {"---"}
+                    </p> */}
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center gap-4 py-10">

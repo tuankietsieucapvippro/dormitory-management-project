@@ -3,32 +3,30 @@ import Layout from "../../components/Layout";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { buildingApi } from "../../services/api";
-import { api } from "../../services/api";
-import { roomApi } from "../../services/api";
+import { roomApi, roomTypeApi } from "../../services/api";
 
-interface Toanha {
-  toanhaid: number;
-  tentoanha: string;
+interface Building {
+  buildingid: number;
+  buildingname: string;
 }
 
-interface Loaiphong {
-  loaiphongid: number;
-  tenloaiphong: string;
-  dongia: number;
-  gioitinh: string;
+interface RoomType {
+  roomtypeid: number;
+  roomtypename: string;
+  price: string | null; // Adjusted to match entity
+  gender: string | null; // Adjusted to match entity
 }
 
 const CreateRoomPage = () => {
   const navigate = useNavigate();
-  const [toanhas, setToanhas] = useState<Toanha[]>([]);
-  const [loaiphongs, setLoaiphongs] = useState<Loaiphong[]>([]);
+  const [buildings, setBuildings] = useState<Building[]>([]);
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
 
   const [formData, setFormData] = useState({
-    tenphong: "",
-    toanhaid: "",
-    loaiphongid: "",
-    tang: "",
-    trangthai: "Còn trống",
+    roomName: "",
+    buildingId: "",
+    roomTypeId: "",
+    status: "Available", // Default to 'Available' as per DTO
   });
 
   useEffect(() => {
@@ -36,11 +34,14 @@ const CreateRoomPage = () => {
       try {
         const [toanhaResponse, loaiphongResponse] = await Promise.all([
           buildingApi.getAll(),
-          api.get("/loaiphong"),
+          roomTypeApi.getAll(),
         ]);
 
-        setToanhas(toanhaResponse.data);
-        setLoaiphongs(loaiphongResponse.data);
+        const toanhasData = toanhaResponse.data.data || toanhaResponse.data;
+        const loaiphongsData = loaiphongResponse.data.data || loaiphongResponse.data;
+
+        setBuildings(Array.isArray(toanhasData) ? toanhasData : []);
+        setRoomTypes(Array.isArray(loaiphongsData) ? loaiphongsData : []);
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu:", error);
         alert("Có lỗi xảy ra khi tải dữ liệu");
@@ -64,12 +65,12 @@ const CreateRoomPage = () => {
     e.preventDefault();
     try {
       await roomApi.create({
-        ...formData,
-        toanhaid: parseInt(formData.toanhaid),
-        loaiphongid: parseInt(formData.loaiphongid),
-        tang: parseInt(formData.tang),
+        roomName: formData.roomName,
+        buildingId: parseInt(formData.buildingId),
+        roomTypeId: parseInt(formData.roomTypeId),
+        status: formData.status,
       });
-      navigate("/room");
+      navigate("/admin/room");
     } catch (error) {
       console.error("Có lỗi xảy ra khi tạo phòng:", error);
       alert("Có lỗi xảy ra khi tạo phòng");
@@ -86,14 +87,14 @@ const CreateRoomPage = () => {
         <div className="mx-auto w-full max-w-2xl flex-1 px-8">
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
-              <label htmlFor="tenphong" className="text-lg font-medium">
+              <label htmlFor="roomName" className="text-lg font-medium">
                 Tên phòng
               </label>
               <input
                 type="text"
-                id="tenphong"
-                name="tenphong"
-                value={formData.tenphong}
+                id="roomName"
+                name="roomName"
+                value={formData.roomName}
                 onChange={handleInputChange}
                 className="rounded-lg border border-gray-600 bg-[#201b39] px-4 py-2 focus:border-blue-500 focus:outline-none"
                 placeholder="Nhập tên phòng"
@@ -102,66 +103,66 @@ const CreateRoomPage = () => {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="toanhaid" className="text-lg font-medium">
+              <label htmlFor="buildingId" className="text-lg font-medium">
                 Tòa nhà
               </label>
               <select
-                id="toanhaid"
-                name="toanhaid"
-                value={formData.toanhaid}
+                id="buildingId"
+                name="buildingId"
+                value={formData.buildingId}
                 onChange={handleInputChange}
                 className="rounded-lg border border-gray-600 bg-[#201b39] px-4 py-2 focus:border-blue-500 focus:outline-none"
                 required
               >
                 <option value="">Chọn tòa nhà</option>
-                {toanhas.map((toanha) => (
-                  <option key={toanha.toanhaid} value={toanha.toanhaid}>
-                    {toanha.tentoanha}
+                {buildings.map((building) => (
+                  <option key={building.buildingid} value={building.buildingid}>
+                    {building.buildingname}
                   </option>
                 ))}
               </select>
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="loaiphongid" className="text-lg font-medium">
+              <label htmlFor="roomTypeId" className="text-lg font-medium">
                 Loại phòng
               </label>
               <select
-                id="loaiphongid"
-                name="loaiphongid"
-                value={formData.loaiphongid}
+                id="roomTypeId"
+                name="roomTypeId"
+                value={formData.roomTypeId}
                 onChange={handleInputChange}
                 className="rounded-lg border border-gray-600 bg-[#201b39] px-4 py-2 focus:border-blue-500 focus:outline-none"
                 required
               >
                 <option value="">Chọn loại phòng</option>
-                {loaiphongs.map((loaiphong) => (
+                {roomTypes.map((roomType) => (
                   <option
-                    key={loaiphong.loaiphongid}
-                    value={loaiphong.loaiphongid}
+                    key={roomType.roomtypeid}
+                    value={roomType.roomtypeid}
                   >
-                    {loaiphong.tenloaiphong} -{" "}
-                    {loaiphong.dongia.toLocaleString()}đ - {loaiphong.gioitinh}
+                    {roomType.roomtypename} -{" "}
+                    {roomType.price !== null && typeof parseFloat(roomType.price) === 'number' ? parseFloat(roomType.price).toLocaleString() : 'N/A'}đ - {roomType.gender}
                   </option>
                 ))}
               </select>
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="tang" className="text-lg font-medium">
-                Tầng
+              <label htmlFor="status" className="text-lg font-medium">
+                Trạng thái
               </label>
-              <input
-                type="number"
-                id="tang"
-                name="tang"
-                value={formData.tang}
+              <select
+                id="status"
+                name="status"
+                value={formData.status}
                 onChange={handleInputChange}
                 className="rounded-lg border border-gray-600 bg-[#201b39] px-4 py-2 focus:border-blue-500 focus:outline-none"
-                placeholder="Nhập số tầng"
-                required
-                min="1"
-              />
+              >
+                <option value="Available">Còn trống (Available)</option>
+                <option value="Occupied">Đã có người (Occupied)</option>
+                <option value="Maintenance">Đang bảo trì (Maintenance)</option>
+              </select>
             </div>
 
             <div className="mt-4 flex gap-4">
@@ -173,7 +174,7 @@ const CreateRoomPage = () => {
               </button>
               <button
                 type="button"
-                onClick={() => navigate("/room")}
+                onClick={() => navigate("/admin/room")}
                 className="rounded-lg bg-gray-500 px-6 py-2 font-medium hover:bg-gray-600"
               >
                 Hủy

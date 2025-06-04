@@ -25,18 +25,29 @@ export class StudentService {
 
   async create(createStudentDto: CreateStudentDto): Promise<Student> {
     // Tạo đối tượng Student từ DTO
+    // Kiểm tra xem createStudentDto.accountid có được cung cấp không
+    // Trong luồng register-with-student, nó sẽ được controller cung cấp.
+    if (!createStudentDto.accountid) {
+      // Điều này không nên xảy ra nếu controller đã cung cấp accountid
+      // Có thể throw lỗi hoặc xử lý theo logic nghiệp vụ nếu accountid là bắt buộc
+      throw new Error('Account ID is required to create a student in this context.');
+    }
+
     const student = this.studentRepository.create({
+      accountid: createStudentDto.accountid, // Sử dụng accountid từ DTO
       fullname: createStudentDto.fullName,
       studentcode: createStudentDto.studentCode,
       class: createStudentDto.class,
-      gender: createStudentDto.gender,
+      // gender: createStudentDto.gender, // createStudentDto.gender giờ là enum Gender
+      gender: createStudentDto.gender.toString(), // Chuyển enum thành string nếu cột DB là varchar
       dateofbirth: createStudentDto.dateOfBirth,
       birthplace: createStudentDto.birthplace,
       address: createStudentDto.address,
       email: createStudentDto.email,
       phonenumber: createStudentDto.phoneNumber,
       idcard: createStudentDto.idCard,
-      status: createStudentDto.status || 'Pending',
+      // status: createStudentDto.status || 'Pending', // createStudentDto.status giờ là string 'pending'
+      status: createStudentDto.status || 'pending', // Đảm bảo là chữ thường
     });
 
     // Lưu và trả về đối tượng Student đã được lưu
@@ -150,7 +161,13 @@ export class StudentService {
   async findByStudentCode(studentCode: string): Promise<Student | null> {
     return this.studentRepository.findOne({
       where: { studentcode: studentCode },
-      relations: ['roomregistrations', 'roomregistrations.room'],
+      relations: [
+        'roomregistrations',
+        'roomregistrations.room',
+        'roomregistrations.room.building',
+        'roomregistrations.room.roomtype',
+        'roomregistrations.semester', // Thêm cả semester để có thể hiển thị sau này nếu cần
+      ],
     });
   }
 

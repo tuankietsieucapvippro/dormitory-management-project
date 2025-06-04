@@ -249,7 +249,7 @@ const StudentTable = ({ searchTerm }: StudentTableProps) => {
                     <div className="flex gap-2">
                       <button
                         onClick={() =>
-                          navigate(`/student/${student.accountid}`)
+                          navigate(`/admin/student/${student.accountid}`)
                         }
                         className="text-blue-500 hover:text-blue-400"
                       >
@@ -257,7 +257,7 @@ const StudentTable = ({ searchTerm }: StudentTableProps) => {
                       </button>
                       <button
                         onClick={() =>
-                          navigate(`/student/edit/${student.accountid}`)
+                          navigate(`/admin/student/edit/${student.accountid}`)
                         }
                         className="text-yellow-500 hover:text-yellow-400"
                       >

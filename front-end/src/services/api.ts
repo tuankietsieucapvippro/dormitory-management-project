@@ -131,4 +131,26 @@ export const priceListApi = {
   create: (data: any) => api.post('/price-list', data),
   update: (id: number, data: any) => api.patch(`/price-list/${id}`, data),
   delete: (id: number) => api.delete(`/price-list/${id}`)
+};
+
+// Account APIs
+export const accountApi = {
+  login: (data: any) => api.post('/accounts/login', data),
+  create: (data: any) => api.post('/accounts', data),
+  getAll: (params?: any) => api.get('/accounts', { params }),
+  getById: (id: number) => api.get(`/accounts/${id}`),
+  update: (id: number, data: any) => api.patch(`/accounts/${id}`, data),
+  delete: (id: number) => api.delete(`/accounts/${id}`),
+  changePassword: (id: number, data: any) => api.post(`/accounts/${id}/change-password`, data),
+  findByUsername: (username: string) => api.get(`/accounts/by-username/${username}`),
 }; 
+// Semester APIs
+export const semesterApi = {
+  getAll: (params?: any) => api.get('/semesters', { params }),
+  getById: (id: number) => api.get(`/semesters/${id}`),
+  create: (data: any) => api.post('/semesters', data),
+  update: (id: number, data: any) => api.patch(`/semesters/${id}`, data),
+  delete: (id: number) => api.delete(`/semesters/${id}`),
+  getActive: () => api.get('/semesters/active'),
+  getLatest: () => api.get('/semesters/latest'),
+};

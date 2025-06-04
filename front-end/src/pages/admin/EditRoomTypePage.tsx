@@ -29,16 +29,18 @@ const EditRoomTypePage = () => {
         setLoading(true);
         setError(null);
         const response = await roomTypeApi.getById(Number(id));
-        if (response.data && response.data.data) {
-          const roomType = response.data.data;
+        // The actual room type data might be in response.data.data or directly in response.data
+        const roomTypeData = response.data?.data || response.data;
+
+        if (roomTypeData) {
           setFormData({
-            roomTypeName: roomType.roomtypename,
-            price: roomType.price,
-            gender: roomType.gender,
-            description: roomType.description || "",
+            roomTypeName: roomTypeData.roomtypename,
+            price: roomTypeData.price,
+            gender: roomTypeData.gender,
+            description: roomTypeData.description || "",
           });
         } else {
-          setError("Định dạng dữ liệu không hợp lệ");
+          setError("Không tìm thấy thông tin loại phòng hoặc định dạng dữ liệu không hợp lệ");
         }
       } catch (error) {
         console.error("Có lỗi xảy ra khi lấy thông tin loại phòng:", error);
@@ -66,7 +68,7 @@ const EditRoomTypePage = () => {
     e.preventDefault();
     try {
       await roomTypeApi.update(Number(id), formData);
-      navigate("/room-type");
+      navigate("/admin/room-type");
     } catch (error) {
       console.error("Có lỗi xảy ra khi cập nhật loại phòng:", error);
       alert("Có lỗi xảy ra khi cập nhật loại phòng");
@@ -174,7 +176,7 @@ const EditRoomTypePage = () => {
               <div className="flex justify-end gap-4">
                 <button
                   type="button"
-                  onClick={() => navigate("/room-type")}
+                  onClick={() => navigate("/admin/room-type")}
                   className="rounded-lg bg-gray-500 px-6 py-2 hover:bg-gray-600"
                 >
                   Hủy

@@ -159,7 +159,7 @@ const UtilitiesTable = ({ searchTerm = "" }: UtilitiesTableProps) => {
                   <div className="flex gap-2">
                     <button
                       onClick={() =>
-                        navigate(`/utilities/edit/${utility.utilitiesid}`)
+                        navigate(`/admin/utilities/edit/${utility.utilitiesid}`)
                       }
                       className="text-yellow-500"
                     >

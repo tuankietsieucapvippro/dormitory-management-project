@@ -93,7 +93,7 @@ const RoomDetailPage = () => {
       <div className="flex h-full flex-col bg-[#130f21] text-[#e1dce4]">
         <div className="-mt-5 mb-2 flex items-center justify-between p-5">
           <button
-            onClick={() => navigate("/room")}
+            onClick={() => navigate("/admin/room")}
             className="rounded-lg bg-gray-500 px-4 py-2 hover:bg-gray-600"
           >
             Quay lại

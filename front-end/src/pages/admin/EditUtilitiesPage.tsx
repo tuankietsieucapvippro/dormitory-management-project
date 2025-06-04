@@ -43,21 +43,27 @@ const EditUtilitiesPage = () => {
     const fetchUtility = async () => {
       try {
         const response = await utilitiesApi.getById(Number(id));
-        const utilityData = response.data;
+        // The actual utility data might be in response.data.data or directly in response.data
+        const utilityData = response.data?.data || response.data;
 
-        setUtility(utilityData);
-        setFormData({
-          previouselectricitymeter:
-            utilityData.previouselectricitymeter.toString(),
-          currentelectricitymeter:
-            utilityData.currentelectricitymeter.toString(),
-          previouswatermeter: utilityData.previouswatermeter.toString(),
-          currentwatermeter: utilityData.currentwatermeter.toString(),
-          startdate: utilityData.startdate,
-          enddate: utilityData.enddate,
-          electricityprice: utilityData.electricityprice.toString(),
-          waterprice: utilityData.waterprice.toString(),
-        });
+        if (utilityData) {
+          setUtility(utilityData);
+          setFormData({
+            previouselectricitymeter:
+              utilityData.previouselectricitymeter.toString(),
+            currentelectricitymeter:
+              utilityData.currentelectricitymeter.toString(),
+            previouswatermeter: utilityData.previouswatermeter.toString(),
+            currentwatermeter: utilityData.currentwatermeter.toString(),
+            startdate: utilityData.startdate,
+            enddate: utilityData.enddate,
+            electricityprice: utilityData.electricityprice.toString(),
+            waterprice: utilityData.waterprice.toString(),
+          });
+        } else {
+          console.error("Không tìm thấy thông tin tiện ích hoặc định dạng dữ liệu không hợp lệ:", response);
+          setError("Không thể tải thông tin tiện ích, định dạng dữ liệu không hợp lệ");
+        }
       } catch (error) {
         console.error("Error fetching utility data:", error);
         setError("An error occurred while loading the data");
@@ -89,7 +95,7 @@ const EditUtilitiesPage = () => {
         electricityprice: parseInt(formData.electricityprice),
         waterprice: parseInt(formData.waterprice),
       });
-      navigate("/utilities");
+      navigate("/admin/utilities");
     } catch (error) {
       console.error("Error updating utility record:", error);
       alert("An error occurred while updating the utility record");
@@ -217,7 +223,7 @@ const EditUtilitiesPage = () => {
             <div className="mt-4 flex justify-end gap-4">
               <button
                 type="button"
-                onClick={() => navigate("/utilities")}
+                onClick={() => navigate("/admin/utilities")}
                 className="rounded bg-gray-500 px-4 py-2 hover:bg-gray-600"
               >
                 Cancel

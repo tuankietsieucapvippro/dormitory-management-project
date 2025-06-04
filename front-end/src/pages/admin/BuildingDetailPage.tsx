@@ -42,7 +42,6 @@ const BuildingDetailPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [building, setBuilding] = useState<Building | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [buildingRooms, setBuildingRooms] = useState<Room[]>([]);
   const [stats, setStats] = useState<BuildingStats>({
     totalRooms: 0,
@@ -183,13 +182,13 @@ const BuildingDetailPage = () => {
           <h1 className="text-3xl font-bold">{building.buildingname}</h1>
           <div className="flex gap-2">
             <button
-              onClick={() => navigate(`/building/edit/${building.buildingid}`)}
+              onClick={() => navigate(`/admin/building/edit/${building.buildingid}`)}
               className="rounded bg-yellow-500 px-4 py-2 hover:bg-yellow-600"
             >
               Sửa
             </button>
             <button
-              onClick={() => navigate("/building")}
+              onClick={() => navigate("/admin/building")}
               className="rounded bg-blue-500 px-4 py-2 hover:bg-blue-600"
             >
               Quay lại
@@ -268,17 +267,8 @@ const BuildingDetailPage = () => {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold">Danh sách phòng</h2>
             <div className="flex items-center gap-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Tìm kiếm phòng..."
-                  className="rounded border border-gray-600 bg-[#130f21] px-4 py-2 focus:border-blue-500 focus:outline-none"
-                />
-              </div>
               <button
-                onClick={() => navigate("/room/create")}
+                onClick={() => navigate("/admin/room/create")}
                 className="rounded bg-green-500 px-4 py-2 hover:bg-green-600"
               >
                 Thêm phòng
@@ -287,7 +277,7 @@ const BuildingDetailPage = () => {
           </div>
 
           <RoomTable
-            searchTerm={searchTerm}
+            searchTerm=""
             buildingId={building.buildingid}
             onRoomDeleted={fetchBuildingData}
           />

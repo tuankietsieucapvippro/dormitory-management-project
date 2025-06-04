@@ -41,7 +41,7 @@ const EditBuildingPage = () => {
           });
         } else {
           setError(
-            "Không thể tải thông tin tòa nhà, định dạng dữ liệu không hợp lệ",
+            "Không tìm thấy thông tin tòa nhà hoặc định dạng dữ liệu không hợp lệ",
           );
         }
       } catch (error) {
@@ -70,7 +70,7 @@ const EditBuildingPage = () => {
     try {
       await buildingApi.update(Number(id), formData);
       alert("Cập nhật tòa nhà thành công!");
-      navigate(`/building/${id}`);
+      navigate(`/admin/building/${id}`);
     } catch (error) {
       console.error("Có lỗi xảy ra khi cập nhật tòa nhà:", error);
       alert("Có lỗi xảy ra khi cập nhật tòa nhà");
@@ -93,7 +93,7 @@ const EditBuildingPage = () => {
         <div className="flex h-full flex-col items-center justify-center gap-4 bg-[#130f21] text-[#e1dce4]">
           <p className="text-red-500">{error}</p>
           <button
-            onClick={() => navigate("/building")}
+            onClick={() => navigate("/admin/building")}
             className="rounded-lg bg-blue-500 px-6 py-2 font-medium hover:bg-blue-600"
           >
             Quay lại
@@ -151,7 +151,7 @@ const EditBuildingPage = () => {
               </button>
               <button
                 type="button"
-                onClick={() => navigate(`/building/${id}`)}
+                onClick={() => navigate(`/admin/building`)}
                 className="rounded-lg bg-gray-500 px-6 py-2 font-medium hover:bg-gray-600"
               >
                 Hủy

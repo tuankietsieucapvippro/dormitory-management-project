@@ -27,7 +27,7 @@ const CreateRoomTypePage = () => {
     try {
       setIsSubmitting(true);
       await roomTypeApi.create(formData);
-      navigate("/room-type");
+      navigate("/admin/room-type");
     } catch (error) {
       console.error("Có lỗi xảy ra khi tạo loại phòng:", error);
       alert("Có lỗi xảy ra khi tạo loại phòng");
@@ -117,7 +117,7 @@ const CreateRoomTypePage = () => {
               <div className="flex justify-end gap-4">
                 <button
                   type="button"
-                  onClick={() => navigate("/room-type")}
+                  onClick={() => navigate("/admin/room-type")}
                   className="rounded-lg bg-gray-500 px-6 py-2 hover:bg-gray-600"
                 >
                   Hủy

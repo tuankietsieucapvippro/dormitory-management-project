@@ -28,8 +28,8 @@ export class CreateRoomDto {
   @Max(10, { message: 'Số giường không được vượt quá 10' })
   bedCount?: number;
 
-  @IsOptional()
+  @IsNotEmpty({ message: 'ID loại phòng không được để trống' })
   @Type(() => Number)
   @IsNumber({}, { message: 'ID loại phòng phải là số' })
-  roomTypeId?: number;
+  roomTypeId: number;
 }

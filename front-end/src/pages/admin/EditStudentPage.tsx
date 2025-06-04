@@ -27,7 +27,14 @@ const EditStudentPage = () => {
     const fetchStudent = async () => {
       try {
         const response = await studentApi.getById(Number(id));
-        setFormData(response.data);
+        // The actual student data might be in response.data.data or directly in response.data
+        const studentData = response.data?.data || response.data;
+        if (studentData) {
+          setFormData(studentData);
+        } else {
+          console.error("Không tìm thấy thông tin sinh viên hoặc định dạng dữ liệu không hợp lệ:", response);
+          alert("Không thể tải thông tin sinh viên, định dạng dữ liệu không hợp lệ");
+        }
       } catch (error) {
         console.error("Có lỗi xảy ra khi lấy thông tin sinh viên:", error);
         alert("Có lỗi xảy ra khi tải dữ liệu");
@@ -55,7 +62,7 @@ const EditStudentPage = () => {
     e.preventDefault();
     try {
       await studentApi.update(Number(id), formData);
-      navigate("/student");
+      navigate("/admin/student");
     } catch (error) {
       console.error("Có lỗi xảy ra khi cập nhật sinh viên:", error);
       alert("Có lỗi xảy ra khi cập nhật sinh viên");
@@ -209,7 +216,7 @@ const EditStudentPage = () => {
               </button>
               <button
                 type="button"
-                onClick={() => navigate("/student")}
+                onClick={() => navigate("/admin/student")}
                 className="rounded-lg bg-gray-500 px-6 py-2 font-medium hover:bg-gray-600"
               >
                 Hủy

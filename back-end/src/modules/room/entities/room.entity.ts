@@ -6,6 +6,7 @@ import {
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
+    Check
   } from "typeorm";
   import { Invoice } from "../../invoice/entities/invoice.entity";
   import { Building } from "../../building/entities/building.entity";
@@ -18,12 +19,13 @@ import {
   })
   @Index("room_pkey", ["roomid"], { unique: true })
   @Entity("room", { schema: "public" })
+  @Check("status IN ('available', 'occupied', 'maintenance')")
   export class Room {
     @PrimaryGeneratedColumn({ type: "integer", name: "roomid" })
     roomid: number;
   
-    @Column("integer", { name: "buildingid", nullable: true })
-    buildingid: number | null;
+    @Column("integer", { name: "buildingid" }) // Khóa ngoại không nên nullable trừ khi DB cho phép
+    buildingid: number;
   
     @Column("character varying", { name: "roomname", length: 30 })
     roomname: string;
@@ -39,12 +41,14 @@ import {
   
     @ManyToOne(() => Building, (building) => building.rooms, {
       onDelete: "CASCADE",
+      nullable: false, // Đảm bảo khóa ngoại không null
     })
     @JoinColumn([{ name: "buildingid", referencedColumnName: "buildingid" }])
     building: Building;
   
     @ManyToOne(() => RoomType, (roomtype) => roomtype.rooms, {
       onDelete: "CASCADE",
+      nullable: false, // Đảm bảo khóa ngoại không null
     })
     @JoinColumn([{ name: "roomtypeid", referencedColumnName: "roomtypeid" }])
     roomtype: RoomType;

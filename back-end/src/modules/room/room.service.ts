@@ -124,7 +124,7 @@ export class RoomService {
     return this.roomRepository.find({
       where: { 
         buildingid: buildingId,
-        status: 'Available'
+        status: 'available'
       },
       relations: ['roomtype']
     });

@@ -232,6 +232,8 @@ const RoomTable = ({
     );
   }
 
+
+  const renderPagination = () => {
   if (searchTerm && rooms.length === 0 && !loading) {
     return (
       <div className="py-4 text-center text-white">
@@ -240,7 +242,6 @@ const RoomTable = ({
     );
   }
 
-  const renderPagination = () => {
     if (buildingId || searchTerm) return null;
 
     const pageNumbers = [];
@@ -381,13 +382,13 @@ const RoomTable = ({
               <td className="border border-gray-300 px-4 py-2">
                 <div className="flex gap-2">
                   <button
-                    onClick={() => navigate(`/room/edit/${room.roomid}`)}
+                    onClick={() => navigate(`/admin/room/edit/${room.roomid}`)}
                     className="text-yellow-500 hover:underline"
                   >
                     Sửa
                   </button>
                   <button
-                    onClick={() => navigate(`/room/${room.roomid}`)}
+                    onClick={() => navigate(`/admin/room/${room.roomid}`)}
                     className="text-blue-500 hover:underline"
                   >
                     Chi tiết
