@@ -2,9 +2,9 @@ import { IsNotEmpty, IsOptional, IsNumber, Length, IsEnum, Min, Max } from 'clas
 import { Type } from 'class-transformer';
 
 enum RoomStatus {
-  Available = 'Available',
-  Occupied = 'Occupied',
-  Maintenance = 'Maintenance'
+  Available = 'available',
+  Occupied = 'occupied',
+  Maintenance = 'maintenance'
 }
 
 export class CreateRoomDto {

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, HttpStatus, HttpCode, ValidationPipe, UsePipes, NotFoundException, BadRequestException } from '@nestjs/common';
 import { BuildingService } from './building.service';
 import { CreateBuildingDto } from './dto/create-building.dto';
 import { UpdateBuildingDto } from './dto/update-building.dto';
@@ -9,12 +9,20 @@ export class BuildingController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @UsePipes(new ValidationPipe({ transform: true }))
   async create(@Body() createBuildingDto: CreateBuildingDto) {
-    return {
-      statusCode: HttpStatus.CREATED,
-      message: 'Tạo tòa nhà thành công',
-      data: await this.buildingService.create(createBuildingDto)
-    };
+    try {
+      return {
+        statusCode: HttpStatus.CREATED,
+        message: 'Tạo tòa nhà thành công',
+        data: await this.buildingService.create(createBuildingDto)
+      };
+    } catch (error) {
+      if (error.code === '23505') { // Unique violation
+        throw new BadRequestException('Tên tòa nhà đã tồn tại');
+      }
+      throw new BadRequestException(`Không thể tạo tòa nhà: ${error.message}`);
+    }
   }
 
   @Get()
@@ -55,26 +63,51 @@ export class BuildingController {
     @Param('id') id: string,
     @Query('includeRooms') includeRooms: boolean = false
   ) {
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Lấy thông tin tòa nhà thành công',
-      data: await this.buildingService.findOne(+id, includeRooms)
-    };
+    try {
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Lấy thông tin tòa nhà thành công',
+        data: await this.buildingService.findOne(+id, includeRooms)
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new NotFoundException(`Không tìm thấy tòa nhà với ID ${id}`);
+    }
   }
 
   @Patch(':id')
+  @UsePipes(new ValidationPipe({ transform: true }))
   async update(@Param('id') id: string, @Body() updateBuildingDto: UpdateBuildingDto) {
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Cập nhật tòa nhà thành công',
-      data: await this.buildingService.update(+id, updateBuildingDto)
-    };
+    try {
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Cập nhật tòa nhà thành công',
+        data: await this.buildingService.update(+id, updateBuildingDto)
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      if (error.code === '23505') { // Unique violation
+        throw new BadRequestException('Tên tòa nhà đã tồn tại');
+      }
+      throw new BadRequestException(`Không thể cập nhật tòa nhà: ${error.message}`);
+    }
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string) {
-    await this.buildingService.remove(+id);
+    try {
+      await this.buildingService.remove(+id);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(`Không thể xóa tòa nhà: ${error.message}`);
+    }
   }
 
   @Get(':id/rooms')

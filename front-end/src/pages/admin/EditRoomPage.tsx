@@ -21,7 +21,6 @@ interface Room {
   roomname: string;
   buildingid: number;
   roomtypeid: number;
-  floor: number;
   status: string;
   bedcount: number;
   building?: {
@@ -47,14 +46,12 @@ const EditRoomPage = () => {
     roomname: string;
     buildingid: string;
     roomtypeid: string;
-    floor: string;
     status: string;
     bedcount: string;
   }>({
     roomname: "",
     buildingid: "",
     roomtypeid: "",
-    floor: "",
     status: "",
     bedcount: "4",
   });
@@ -65,29 +62,7 @@ const EditRoomPage = () => {
     setDebugInfo(data);
   };
 
-  // Hàm đảm bảo dữ liệu trả về là mảng
-  const ensureArray = <T,>(data: any): T[] => {
-    if (!data) return [];
-    if (Array.isArray(data)) return data;
 
-    // Nếu data là một object, kiểm tra xem có thể nó là array-like object
-    if (typeof data === "object") {
-      // Kiểm tra xem có property nào là số không
-      const hasNumericKeys = Object.keys(data).some(
-        (key) => !isNaN(Number(key)),
-      );
-      if (hasNumericKeys) {
-        try {
-          // Thử chuyển object thành array
-          return Array.from(data as any);
-        } catch (e) {
-          console.error("Không thể chuyển đổi dữ liệu thành mảng:", e);
-        }
-      }
-    }
-
-    return [];
-  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -98,15 +73,23 @@ const EditRoomPage = () => {
         // Bước 1: Tải thông tin phòng
         console.log(`Fetching room with ID: ${id}`);
         const roomResponse = await roomApi.getById(Number(id));
-        const roomData = roomResponse.data as Room;
+
+        // Xử lý response data - có thể có cấu trúc { data: { data: room } } hoặc { data: room }
+        let roomData: Room;
+        if (roomResponse.data?.data) {
+          roomData = roomResponse.data.data as Room;
+        } else {
+          roomData = roomResponse.data as Room;
+        }
 
         showDebugInfo({
           endpoint: `/rooms/${id}`,
-          responseData: roomData,
+          rawResponse: roomResponse.data,
+          processedRoomData: roomData,
           step: "Fetch Room Data",
         });
 
-        if (!roomData) {
+        if (!roomData || !roomData.roomid) {
           throw new Error(`Không tìm thấy thông tin phòng với ID: ${id}`);
         }
 
@@ -115,23 +98,33 @@ const EditRoomPage = () => {
           roomname: roomData.roomname || "",
           buildingid: roomData.buildingid?.toString() || "",
           roomtypeid: roomData.roomtypeid?.toString() || "",
-          floor: roomData.floor?.toString() || "",
           status: roomData.status || "",
           bedcount: roomData.bedcount?.toString() || "4",
+        });
+
+        console.log("Form data set:", {
+          roomname: roomData.roomname,
+          buildingid: roomData.buildingid,
+          roomtypeid: roomData.roomtypeid,
+          status: roomData.status,
+          bedcount: roomData.bedcount,
         });
 
         // Bước 3: Tải danh sách tòa nhà
         console.log("Fetching buildings");
         const buildingResponse = await buildingApi.getAll();
 
-        // Đảm bảo dữ liệu là một mảng
-        const buildingsData = ensureArray<Building>(buildingResponse.data);
+        // Xử lý response data cho buildings
+        let buildingsData: Building[];
+        if (buildingResponse.data?.data) {
+          buildingsData = Array.isArray(buildingResponse.data.data) ? buildingResponse.data.data : [];
+        } else {
+          buildingsData = Array.isArray(buildingResponse.data) ? buildingResponse.data : [];
+        }
 
         showDebugInfo({
           endpoint: "/buildings",
-          responseType: typeof buildingResponse.data,
-          isArray: Array.isArray(buildingResponse.data),
-          rawData: buildingResponse.data,
+          rawResponse: buildingResponse.data,
           processedData: buildingsData,
           count: buildingsData.length,
           step: "Fetch Buildings",
@@ -143,14 +136,17 @@ const EditRoomPage = () => {
         console.log("Fetching room types");
         const roomTypeResponse = await roomTypeApi.getAll();
 
-        // Đảm bảo dữ liệu là một mảng
-        const roomTypesData = ensureArray<RoomType>(roomTypeResponse.data);
+        // Xử lý response data cho room types
+        let roomTypesData: RoomType[];
+        if (roomTypeResponse.data?.data) {
+          roomTypesData = Array.isArray(roomTypeResponse.data.data) ? roomTypeResponse.data.data : [];
+        } else {
+          roomTypesData = Array.isArray(roomTypeResponse.data) ? roomTypeResponse.data : [];
+        }
 
         showDebugInfo({
           endpoint: "/room-types",
-          responseType: typeof roomTypeResponse.data,
-          isArray: Array.isArray(roomTypeResponse.data),
-          rawData: roomTypeResponse.data,
+          rawResponse: roomTypeResponse.data,
           processedData: roomTypesData,
           count: roomTypesData.length,
           step: "Fetch Room Types",
@@ -181,10 +177,48 @@ const EditRoomPage = () => {
     }
   }, [id]);
 
+  // Function để extract số giường từ tên loại phòng
+  const extractBedCountFromRoomTypeName = (roomTypeName: string): string => {
+    console.log(`Extracting bed count from room type: "${roomTypeName}"`);
+
+    // Tìm số trong tên loại phòng (ví dụ: "phòng 8 người nam" -> "8")
+    const match = roomTypeName.match(/(\d+)\s*người/i);
+    if (match) {
+      console.log(`Found bed count using "người" pattern: ${match[1]}`);
+      return match[1];
+    }
+
+    // Nếu không tìm thấy pattern "X người", tìm số đầu tiên
+    const numberMatch = roomTypeName.match(/\d+/);
+    if (numberMatch) {
+      console.log(`Found bed count using first number: ${numberMatch[0]}`);
+      return numberMatch[0];
+    }
+
+    // Mặc định trả về 4 nếu không tìm thấy số nào
+    console.log("No number found, using default: 4");
+    return "4";
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
+
+    // Nếu thay đổi loại phòng, tự động cập nhật số giường
+    if (name === "roomtypeid" && value) {
+      const selectedRoomType = roomTypes.find(rt => rt.roomtypeid.toString() === value);
+      if (selectedRoomType) {
+        const bedCount = extractBedCountFromRoomTypeName(selectedRoomType.roomtypename);
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value,
+          bedcount: bedCount,
+        }));
+        return;
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -197,12 +231,11 @@ const EditRoomPage = () => {
 
     try {
       const dataToUpdate = {
-        roomname: formData.roomname,
-        buildingid: parseInt(formData.buildingid),
-        roomtypeid: parseInt(formData.roomtypeid),
-        floor: parseInt(formData.floor),
+        roomName: formData.roomname,
+        buildingId: parseInt(formData.buildingid),
+        roomTypeId: parseInt(formData.roomtypeid),
         status: formData.status,
-        bedcount: parseInt(formData.bedcount),
+        bedCount: parseInt(formData.bedcount),
       };
 
       showDebugInfo({
@@ -213,15 +246,23 @@ const EditRoomPage = () => {
       });
 
       await roomApi.update(Number(id), dataToUpdate);
+      alert("Cập nhật phòng thành công!");
       navigate("/admin/room");
     } catch (error: any) {
       console.error("Có lỗi xảy ra khi cập nhật phòng:", error);
-      alert(
-        "Có lỗi xảy ra khi cập nhật phòng: " +
-          (error.message || "Vui lòng thử lại sau"),
-      );
+
+      // Hiển thị lỗi cụ thể từ backend
+      if (error.response?.data?.message) {
+        alert(`Lỗi: ${error.response.data.message}`);
+      } else if (error.message) {
+        alert(`Lỗi: ${error.message}`);
+      } else {
+        alert("Có lỗi xảy ra khi cập nhật phòng");
+      }
+
       showDebugInfo({
         error: error.message,
+        response: error.response?.data,
         stack: error.stack,
         step: "Update Error",
       });
@@ -289,35 +330,20 @@ const EditRoomPage = () => {
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label htmlFor="floor" className="text-lg font-medium">
-                Tầng
-              </label>
-              <input
-                type="number"
-                id="floor"
-                name="floor"
-                value={formData.floor}
-                onChange={handleInputChange}
-                className="rounded-lg border border-gray-600 bg-[#201b39] px-4 py-2 focus:border-blue-500 focus:outline-none"
-                placeholder="Nhập số tầng"
-                required
-              />
-            </div>
+
 
             <div className="flex flex-col gap-2">
               <label htmlFor="bedcount" className="text-lg font-medium">
-                Số giường
+                Số giường (tự động từ loại phòng)
               </label>
               <input
                 type="number"
                 id="bedcount"
                 name="bedcount"
                 value={formData.bedcount}
-                onChange={handleInputChange}
-                className="rounded-lg border border-gray-600 bg-[#201b39] px-4 py-2 focus:border-blue-500 focus:outline-none"
-                placeholder="Nhập số giường"
-                required
+                className="rounded-lg border border-gray-600 bg-[#2a2547] px-4 py-2 text-gray-300 cursor-not-allowed"
+                placeholder="Sẽ tự động cập nhật khi chọn loại phòng"
+                readOnly
               />
             </div>
 
@@ -370,7 +396,7 @@ const EditRoomPage = () => {
                       key={roomType.roomtypeid}
                       value={roomType.roomtypeid}
                     >
-                      {roomType.roomtypename} - {roomType.gender} -{" "}
+                      {roomType.roomtypename} - {roomType.gender === 'male' ? 'Nam' : roomType.gender === 'female' ? 'Nữ' : roomType.gender} -{" "}
                       {Number(roomType.price).toLocaleString()} VNĐ
                     </option>
                   ))}
@@ -395,23 +421,13 @@ const EditRoomPage = () => {
                 required
               >
                 <option value="">Chọn trạng thái</option>
-                <option value="Available">Còn trống</option>
-                <option value="Full">Đã đầy</option>
-                <option value="Maintenance">Đang sửa chữa</option>
+                <option value="available">Còn trống</option>
+                <option value="occupied">Đã có người</option>
+                <option value="maintenance">Đang bảo trì</option>
               </select>
             </div>
 
-            {/* Debug info section */}
-            <div className="mt-4 rounded-lg bg-[#201b39] p-4 text-xs">
-              <details>
-                <summary className="cursor-pointer font-medium">
-                  Thông tin debug
-                </summary>
-                <pre className="mt-2 overflow-auto whitespace-pre-wrap">
-                  {JSON.stringify(debugInfo, null, 2)}
-                </pre>
-              </details>
-            </div>
+
 
             <div className="mt-4 flex gap-4">
               <button

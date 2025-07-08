@@ -1,6 +1,8 @@
-import { PartialType } from '@nestjs/mapped-types';
+import { PartialType, OmitType } from '@nestjs/mapped-types';
 import { CreateStudentDto } from './create-student.dto';
 
-// Bằng cách kế thừa từ PartialType(CreateStudentDto), UpdateStudentDto sẽ có tất cả
-// các thuộc tính của CreateStudentDto nhưng tất cả đều là optional
-export class UpdateStudentDto extends PartialType(CreateStudentDto) {}
+// Loại bỏ accountid khỏi UpdateStudentDto vì nó không được phép cập nhật
+// và tạo tất cả các thuộc tính còn lại thành optional
+export class UpdateStudentDto extends PartialType(
+  OmitType(CreateStudentDto, ['accountid'] as const)
+) {}

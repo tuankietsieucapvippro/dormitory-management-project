@@ -27,14 +27,10 @@ export class RoomService {
     const room = this.roomRepository.create({
       roomname: createRoomDto.roomName,
       buildingid: createRoomDto.buildingId,
+      roomtypeid: createRoomDto.roomTypeId,
       status: createRoomDto.status,
       bedcount: createRoomDto.bedCount,
     });
-
-    // Thiết lập roomtype nếu có roomTypeId
-    if (createRoomDto.roomTypeId) {
-      room.roomtype = { roomtypeid: createRoomDto.roomTypeId } as any;
-    }
 
     // Lưu vào database
     return this.roomRepository.save(room);

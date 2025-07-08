@@ -39,15 +39,14 @@ export class StudentService {
       studentcode: createStudentDto.studentCode,
       class: createStudentDto.class,
       // gender: createStudentDto.gender, // createStudentDto.gender giờ là enum Gender
-      gender: createStudentDto.gender.toString(), // Chuyển enum thành string nếu cột DB là varchar
+      gender: createStudentDto.gender, // Gender enum đã có giá trị đúng format (Male/Female)
       dateofbirth: createStudentDto.dateOfBirth,
       birthplace: createStudentDto.birthplace,
       address: createStudentDto.address,
       email: createStudentDto.email,
       phonenumber: createStudentDto.phoneNumber,
       idcard: createStudentDto.idCard,
-      // status: createStudentDto.status || 'Pending', // createStudentDto.status giờ là string 'pending'
-      status: createStudentDto.status || 'pending', // Đảm bảo là chữ thường
+      status: createStudentDto.status || 'pending', // Sử dụng enum với giá trị chữ thường
     });
 
     // Lưu và trả về đối tượng Student đã được lưu
@@ -202,7 +201,7 @@ export class StudentService {
     }
     
     if (updateStudentDto.gender !== undefined) {
-      student.gender = updateStudentDto.gender;
+      student.gender = updateStudentDto.gender; // Gender enum đã có giá trị đúng format (Male/Female)
     }
     
     if (updateStudentDto.dateOfBirth !== undefined) {
@@ -230,7 +229,7 @@ export class StudentService {
     }
     
     if (updateStudentDto.status !== undefined) {
-      student.status = updateStudentDto.status;
+      student.status = updateStudentDto.status.toString(); // Chuyển enum thành string chữ thường
     }
     
     return this.studentRepository.save(student);

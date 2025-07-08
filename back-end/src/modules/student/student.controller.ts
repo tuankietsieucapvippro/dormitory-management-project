@@ -196,6 +196,7 @@ export class StudentController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async update(@Param('id') id: string, @Body() updateStudentDto: UpdateStudentDto) {
     try {
+      console.log('Update student request:', { id, updateStudentDto });
       const student = await this.studentService.update(+id, updateStudentDto);
       return {
         statusCode: HttpStatus.OK,
@@ -203,6 +204,14 @@ export class StudentController {
         data: student
       };
     } catch (error) {
+      console.error('Error updating student:', error);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+        stack: error.stack
+      });
+
       if (error instanceof NotFoundException) {
         throw error;
       }
@@ -215,7 +224,7 @@ export class StudentController {
           throw new BadRequestException('Số điện thoại đã tồn tại');
         }
       }
-      throw error;
+      throw new BadRequestException(`Lỗi cập nhật sinh viên: ${error.message}`);
     }
   }
 

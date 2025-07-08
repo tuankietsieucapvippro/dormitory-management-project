@@ -13,7 +13,7 @@ const BuildingPage = () => {
     <Layout>
       <div className="min-h-full bg-[#130f21] p-5 text-[#e1dce4]">
         <h1 className="-mt-5 mb-2 text-center text-3xl font-bold uppercase">
-          Building Management
+          Quản lý toà nhà
         </h1>
         <div className="grid gap-5 p-3">
           <div className="flex justify-between gap-5">
@@ -24,7 +24,7 @@ const BuildingPage = () => {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search buildings..."
+                  placeholder="Tìm kiếm toà nhà..."
                   className="w-full rounded-lg border border-gray-600 bg-[#201b39] py-2 pl-10 pr-4 focus:border-blue-500 focus:outline-none"
                 />
               </div>
@@ -34,7 +34,7 @@ const BuildingPage = () => {
               className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 hover:bg-blue-600"
             >
               <TbBuildingPlus />
-              <span>Add Building</span>
+              <span>Thêm toà nhà</span>
             </button>
           </div>
           <div className="overflow-auto">

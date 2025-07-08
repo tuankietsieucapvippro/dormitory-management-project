@@ -36,14 +36,14 @@ const CreateBuildingPage = () => {
     <Layout>
       <div className="flex h-full flex-col bg-[#130f21] text-[#e1dce4]">
         <h1 className="-mt-5 mb-2 p-5 text-center text-3xl font-bold uppercase">
-          Add New Building
+          Thêm toà nhà mới
         </h1>
 
         <div className="mx-auto w-full max-w-2xl flex-1 px-8">
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
               <label htmlFor="buildingname" className="text-lg font-medium">
-                Building Name
+                Tên toà nhà
               </label>
               <input
                 type="text"
@@ -52,14 +52,14 @@ const CreateBuildingPage = () => {
                 value={formData.buildingname}
                 onChange={handleInputChange}
                 className="rounded-lg border border-gray-600 bg-[#201b39] px-4 py-2 focus:border-blue-500 focus:outline-none"
-                placeholder="Enter building name"
+                placeholder="Nhập tên toà nhà"
                 required
               />
             </div>
 
             <div className="flex flex-col gap-2">
               <label htmlFor="description" className="text-lg font-medium">
-                Description
+                Mô tả
               </label>
               <textarea
                 id="description"
@@ -67,7 +67,7 @@ const CreateBuildingPage = () => {
                 value={formData.description}
                 onChange={handleInputChange}
                 className="h-32 rounded-lg border border-gray-600 bg-[#201b39] px-4 py-2 focus:border-blue-500 focus:outline-none"
-                placeholder="Enter description for the building"
+                placeholder="Nhập mô tả cho toà nhà"
               />
             </div>
 
@@ -76,14 +76,14 @@ const CreateBuildingPage = () => {
                 type="submit"
                 className="rounded-lg bg-blue-500 px-6 py-2 font-medium hover:bg-blue-600"
               >
-                Submit
+                Thêm
               </button>
               <button
                 type="button"
                 onClick={() => navigate("/admin/building")}
                 className="rounded-lg bg-gray-500 px-6 py-2 font-medium hover:bg-gray-600"
               >
-                Cancel
+                Huỷ
               </button>
             </div>
           </form>

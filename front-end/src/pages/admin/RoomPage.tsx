@@ -32,7 +32,7 @@ const RoomPage = () => {
     <Layout>
       <div className="min-h-full bg-[#130f21] p-5 text-[#e1dce4]">
         <h1 className="-mt-5 mb-2 text-center text-3xl font-bold uppercase">
-          Phòng
+          Quản lý phòng
         </h1>
         <div className="grid gap-5 p-3">
           <div className="flex justify-between gap-5">

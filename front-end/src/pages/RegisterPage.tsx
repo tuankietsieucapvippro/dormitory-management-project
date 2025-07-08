@@ -272,13 +272,25 @@ const RegisterPage = () => {
     // Kiểm tra định dạng email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (formData.email && !emailRegex.test(formData.email)) {
-      newInvalidFields.push("email");
+      if (!newInvalidFields.includes("email")) {
+        newInvalidFields.push("email");
+      }
     }
 
-    // Kiểm tra định dạng số điện thoại (10 số)
+    // Kiểm tra định dạng số điện thoại (đúng 10 số)
     const phoneRegex = /^\d{10}$/;
     if (formData.phoneNumber && !phoneRegex.test(formData.phoneNumber)) {
-      newInvalidFields.push("phoneNumber");
+      if (!newInvalidFields.includes("phoneNumber")) {
+        newInvalidFields.push("phoneNumber");
+      }
+    }
+
+    // Kiểm tra định dạng CMND/CCCD (đúng 12 số)
+    const idCardRegex = /^\d{12}$/;
+    if (formData.idCard && !idCardRegex.test(formData.idCard)) {
+      if (!newInvalidFields.includes("idCard")) {
+        newInvalidFields.push("idCard");
+      }
     }
 
     setInvalidFields(newInvalidFields);

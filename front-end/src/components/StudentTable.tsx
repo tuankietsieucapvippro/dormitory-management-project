@@ -96,14 +96,35 @@ const StudentTable = ({ searchTerm }: StudentTableProps) => {
     setCurrentPage(newPage);
   };
 
+  const getStatusDisplay = (status: string | null | undefined) => {
+    if (!status) return "---";
+
+    switch (status) {
+      case "pending":
+      case "Pending":
+        return "Chờ duyệt";
+      case "approved":
+      case "Approved":
+        return "Đã duyệt";
+      case "rejected":
+      case "Rejected":
+        return "Từ chối";
+      default:
+        return status;
+    }
+  };
+
   const getStatusBadgeClass = (status: string | null | undefined) => {
     if (!status) return "bg-gray-700/30 text-gray-400";
 
     switch (status) {
+      case "pending":
       case "Pending":
         return "bg-yellow-700/30 text-yellow-400";
+      case "approved":
       case "Approved":
         return "bg-green-700/30 text-green-400";
+      case "rejected":
       case "Rejected":
         return "bg-red-700/30 text-red-400";
       default:
@@ -111,12 +132,29 @@ const StudentTable = ({ searchTerm }: StudentTableProps) => {
     }
   };
 
+  const getGenderDisplay = (gender: string | null | undefined) => {
+    if (!gender) return "---";
+
+    switch (gender) {
+      case "male":
+      case "Male":
+        return "Nam";
+      case "female":
+      case "Female":
+        return "Nữ";
+      default:
+        return gender;
+    }
+  };
+
   const getGenderBadgeClass = (gender: string | null | undefined) => {
     if (!gender) return "bg-gray-700/30 text-gray-400";
 
     switch (gender) {
+      case "male":
       case "Male":
         return "bg-blue-700/30 text-blue-400";
+      case "female":
       case "Female":
         return "bg-pink-700/30 text-pink-400";
       default:
@@ -221,7 +259,7 @@ const StudentTable = ({ searchTerm }: StudentTableProps) => {
                     <span
                       className={`rounded px-2 py-1 text-sm ${getGenderBadgeClass(student.gender)}`}
                     >
-                      {student.gender || "---"}
+                      {getGenderDisplay(student.gender)}
                     </span>
                   </td>
                   <td className="border border-gray-600 px-4 py-2">
@@ -242,7 +280,7 @@ const StudentTable = ({ searchTerm }: StudentTableProps) => {
                     <span
                       className={`rounded px-2 py-1 text-sm ${getStatusBadgeClass(student.status)}`}
                     >
-                      {student.status || "---"}
+                      {getStatusDisplay(student.status)}
                     </span>
                   </td>
                   <td className="border border-gray-600 px-4 py-2">

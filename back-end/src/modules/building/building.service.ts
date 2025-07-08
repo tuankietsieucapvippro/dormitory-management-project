@@ -23,7 +23,7 @@ export class BuildingService {
   async create(createBuildingDto: CreateBuildingDto): Promise<Building> {
     // Chuyển đổi từ dto sang entity
     const building = this.buildingRepository.create({
-      buildingname: createBuildingDto.buildingName,
+      buildingname: createBuildingDto.buildingname,
       description: createBuildingDto.description,
     });
 
@@ -90,18 +90,18 @@ export class BuildingService {
   async update(id: number, updateBuildingDto: UpdateBuildingDto): Promise<Building> {
     // Tạo đối tượng chứa dữ liệu cần cập nhật
     const updateData: Partial<Building> = {};
-    
-    if (updateBuildingDto.buildingName) {
-      updateData.buildingname = updateBuildingDto.buildingName;
+
+    if (updateBuildingDto.buildingname) {
+      updateData.buildingname = updateBuildingDto.buildingname;
     }
-    
+
     if (updateBuildingDto.description !== undefined) {
       updateData.description = updateBuildingDto.description;
     }
 
     // Cập nhật trong database
     await this.buildingRepository.update(id, updateData);
-    
+
     // Trả về đối tượng đã cập nhật
     return this.findOne(id);
   }

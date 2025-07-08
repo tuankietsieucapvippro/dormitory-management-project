@@ -76,7 +76,7 @@ const UtilitiesTable = ({ searchTerm = "" }: UtilitiesTableProps) => {
       setUtilities(currentItems);
     } catch (error) {
       console.error("Error fetching utilities:", error);
-      alert("An error occurred while loading utilities data");
+      alert("Có lỗi xảy ra khi tải dữ liệu điện nước");
     } finally {
       setLoading(false);
     }
@@ -91,7 +91,7 @@ const UtilitiesTable = ({ searchTerm = "" }: UtilitiesTableProps) => {
       fetchUtilities();
     } catch (error) {
       console.error("Error deleting utility record:", error);
-      alert("An error occurred while deleting the utility record");
+      alert("Có lỗi xảy ra khi xóa dữ liệu điện nước");
     }
   };
 
@@ -103,7 +103,7 @@ const UtilitiesTable = ({ searchTerm = "" }: UtilitiesTableProps) => {
   };
 
   if (loading && utilities.length === 0) {
-    return <div className="py-4 text-center">Loading...</div>;
+    return <div className="py-4 text-center">Đang tải dữ liệu...</div>;
   }
 
   return (
@@ -111,19 +111,19 @@ const UtilitiesTable = ({ searchTerm = "" }: UtilitiesTableProps) => {
       <table className="w-full table-auto border-collapse border border-gray-300">
         <thead>
           <tr className="bg-[#201b39] text-left">
-            <th className="border border-gray-300 px-4 py-2">Room</th>
-            <th className="border border-gray-300 px-4 py-2">Building</th>
-            <th className="border border-gray-300 px-4 py-2">Start Date</th>
-            <th className="border border-gray-300 px-4 py-2">End Date</th>
+            <th className="border border-gray-300 px-4 py-2">Phòng</th>
+            <th className="border border-gray-300 px-4 py-2">Tòa nhà</th>
+            <th className="border border-gray-300 px-4 py-2">Ngày bắt đầu</th>
+            <th className="border border-gray-300 px-4 py-2">Ngày kết thúc</th>
             <th className="border border-gray-300 px-4 py-2">
-              Electricity Meter
+              Chỉ số điện
             </th>
-            <th className="border border-gray-300 px-4 py-2">Water Meter</th>
+            <th className="border border-gray-300 px-4 py-2">Chỉ số nước</th>
             <th className="border border-gray-300 px-4 py-2">
-              Electricity Price
+              Giá điện
             </th>
-            <th className="border border-gray-300 px-4 py-2">Water Price</th>
-            <th className="border border-gray-300 px-4 py-2">Actions</th>
+            <th className="border border-gray-300 px-4 py-2">Giá nước</th>
+            <th className="border border-gray-300 px-4 py-2">Thao tác</th>
           </tr>
         </thead>
         <tbody>
@@ -161,9 +161,9 @@ const UtilitiesTable = ({ searchTerm = "" }: UtilitiesTableProps) => {
                       onClick={() =>
                         navigate(`/admin/utilities/edit/${utility.utilitiesid}`)
                       }
-                      className="text-yellow-500"
+                      className="text-yellow-500 hover:text-yellow-400"
                     >
-                      Edit
+                      Sửa
                     </button>
                     <button
                       onClick={() =>
@@ -172,9 +172,9 @@ const UtilitiesTable = ({ searchTerm = "" }: UtilitiesTableProps) => {
                           utilitiesid: utility.utilitiesid,
                         })
                       }
-                      className="text-red-500"
+                      className="text-red-500 hover:text-red-400"
                     >
-                      Delete
+                      Xóa
                     </button>
                   </div>
                 </td>
@@ -186,7 +186,7 @@ const UtilitiesTable = ({ searchTerm = "" }: UtilitiesTableProps) => {
                 colSpan={9}
                 className="border border-gray-300 px-4 py-4 text-center"
               >
-                No utility records found
+                Không tìm thấy dữ liệu điện nước
               </td>
             </tr>
           )}
@@ -201,7 +201,7 @@ const UtilitiesTable = ({ searchTerm = "" }: UtilitiesTableProps) => {
             disabled={currentPage === 1}
             className="flex items-center gap-1 rounded px-3 py-1 text-sm disabled:opacity-50"
           >
-            <FaChevronLeft /> Prev
+            <FaChevronLeft /> Trước
           </button>
 
           {[...Array(totalPages)].map((_, index) => {
@@ -244,15 +244,15 @@ const UtilitiesTable = ({ searchTerm = "" }: UtilitiesTableProps) => {
             disabled={currentPage === totalPages}
             className="flex items-center gap-1 rounded px-3 py-1 text-sm disabled:opacity-50"
           >
-            Next <FaChevronRight />
+            Sau <FaChevronRight />
           </button>
         </div>
       )}
 
       <DeleteModal
         isOpen={deleteModal.isOpen}
-        title="Confirm Delete"
-        message="Are you sure you want to delete this utility record?"
+        title="Xác nhận xóa"
+        message="Bạn có chắc chắn muốn xóa dữ liệu điện nước này? Hành động này không thể hoàn tác."
         onClose={() => setDeleteModal({ isOpen: false, utilitiesid: null })}
         onConfirm={handleDelete}
       />

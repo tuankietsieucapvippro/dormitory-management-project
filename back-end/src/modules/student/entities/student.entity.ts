@@ -17,7 +17,7 @@ import {
   @Index("student_studentcode_key", ["studentcode"], { unique: true })
   // @Index("student_pkey", ["accountid"], { unique: true }) // PrimaryColumn đã bao hàm unique
   @Entity("student", { schema: "public" })
-  @Check("gender IN ('male', 'female')")
+  @Check("gender IN ('Male', 'Female')")
   @Check("status IN ('pending', 'approved', 'rejected')")
   @Check("dateofbirth <= CURRENT_DATE")
   export class Student {
@@ -41,7 +41,7 @@ import {
     @Column("character varying", { name: "class", nullable: true, length: 30 })
     class: string | null;
   
-    @ApiProperty({ description: 'Giới tính', example: 'male', enum: ['male', 'female'], nullable: true })
+    @ApiProperty({ description: 'Giới tính', example: 'Male', enum: ['Male', 'Female'], nullable: true })
     @Column("character varying", { name: "gender", nullable: true, length: 10 })
     gender: string | null;
   

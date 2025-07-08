@@ -40,10 +40,19 @@ import {
     // @Column("date", { name: "checkoutdate", nullable: true })
     // checkoutdate: string | null;
     
+    @Column("integer", { name: "accountid" })
+    accountid: number;
+
+    @Column("integer", { name: "roomid" })
+    roomid: number;
+
     @ApiProperty({ description: 'Trạng thái đăng ký phòng', example: 'pending' }) // Cập nhật ví dụ
     @Column("character varying", { name: "status", length: 20 })
     status: string;
-  
+
+    @Column("integer", { name: "semesterid", nullable: true })
+    semesterid: number | null;
+
     @ApiProperty({ description: 'Thông tin phòng liên kết với đăng ký', type: () => Room })
     @ManyToOne(() => Room, (room) => room.roomregistrations, {
       onDelete: "CASCADE",
@@ -51,7 +60,7 @@ import {
     })
     @JoinColumn([{ name: "roomid", referencedColumnName: "roomid" }])
     room: Room;
-  
+
     @ApiProperty({ description: 'Thông tin sinh viên liên kết với đăng ký', type: () => Student })
     @ManyToOne(() => Student, (student) => student.roomregistrations, {
       onDelete: "CASCADE",

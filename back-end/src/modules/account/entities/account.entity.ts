@@ -22,7 +22,10 @@ import {
   
     @Column("character varying", { name: "password", length: 255 })
     password: string;
-  
+
+    @Column("integer", { name: "roleid", nullable: true })
+    roleid: number | null;
+
     @ManyToOne(() => Role, (role) => role.accounts)
     @JoinColumn([{ name: "roleid", referencedColumnName: "roleid" }])
     role: Role;

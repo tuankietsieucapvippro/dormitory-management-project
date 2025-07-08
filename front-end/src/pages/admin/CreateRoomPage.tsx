@@ -26,19 +26,27 @@ const CreateRoomPage = () => {
     roomName: "",
     buildingId: "",
     roomTypeId: "",
-    status: "Available", // Default to 'Available' as per DTO
+    status: "available", // Sửa thành chữ thường để khớp với database constraint
+    bedCount: "4", // Sẽ được tự động cập nhật khi chọn loại phòng
   });
 
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
+        console.log("Fetching buildings and room types...");
         const [toanhaResponse, loaiphongResponse] = await Promise.all([
           buildingApi.getAll(),
           roomTypeApi.getAll(),
         ]);
 
+        console.log("Buildings response:", toanhaResponse);
+        console.log("Room types response:", loaiphongResponse);
+
         const toanhasData = toanhaResponse.data.data || toanhaResponse.data;
         const loaiphongsData = loaiphongResponse.data.data || loaiphongResponse.data;
+
+        console.log("Buildings data:", toanhasData);
+        console.log("Room types data:", loaiphongsData);
 
         setBuildings(Array.isArray(toanhasData) ? toanhasData : []);
         setRoomTypes(Array.isArray(loaiphongsData) ? loaiphongsData : []);
@@ -51,10 +59,48 @@ const CreateRoomPage = () => {
     fetchInitialData();
   }, []);
 
+  // Function để extract số giường từ tên loại phòng
+  const extractBedCountFromRoomTypeName = (roomTypeName: string): string => {
+    console.log(`Extracting bed count from room type: "${roomTypeName}"`);
+
+    // Tìm số trong tên loại phòng (ví dụ: "phòng 8 người nam" -> "8")
+    const match = roomTypeName.match(/(\d+)\s*người/i);
+    if (match) {
+      console.log(`Found bed count using "người" pattern: ${match[1]}`);
+      return match[1];
+    }
+
+    // Nếu không tìm thấy pattern "X người", tìm số đầu tiên
+    const numberMatch = roomTypeName.match(/\d+/);
+    if (numberMatch) {
+      console.log(`Found bed count using first number: ${numberMatch[0]}`);
+      return numberMatch[0];
+    }
+
+    // Mặc định trả về 4 nếu không tìm thấy số nào
+    console.log("No number found, using default: 4");
+    return "4";
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
+
+    // Nếu thay đổi loại phòng, tự động cập nhật số giường
+    if (name === "roomTypeId" && value) {
+      const selectedRoomType = roomTypes.find(rt => rt.roomtypeid.toString() === value);
+      if (selectedRoomType) {
+        const bedCount = extractBedCountFromRoomTypeName(selectedRoomType.roomtypename);
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value,
+          bedCount: bedCount,
+        }));
+        return;
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -64,16 +110,29 @@ const CreateRoomPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await roomApi.create({
+      const payload = {
         roomName: formData.roomName,
         buildingId: parseInt(formData.buildingId),
         roomTypeId: parseInt(formData.roomTypeId),
         status: formData.status,
-      });
+        bedCount: parseInt(formData.bedCount),
+      };
+
+      console.log("Sending payload:", payload);
+      await roomApi.create(payload);
+      alert("Tạo phòng thành công!");
       navigate("/admin/room");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Có lỗi xảy ra khi tạo phòng:", error);
-      alert("Có lỗi xảy ra khi tạo phòng");
+
+      // Hiển thị lỗi cụ thể từ backend
+      if (error.response?.data?.message) {
+        alert(`Lỗi: ${error.response.data.message}`);
+      } else if (error.message) {
+        alert(`Lỗi: ${error.message}`);
+      } else {
+        alert("Có lỗi xảy ra khi tạo phòng");
+      }
     }
   };
 
@@ -149,6 +208,21 @@ const CreateRoomPage = () => {
             </div>
 
             <div className="flex flex-col gap-2">
+              <label htmlFor="bedCount" className="text-lg font-medium">
+                Số giường (tự động từ loại phòng)
+              </label>
+              <input
+                type="number"
+                id="bedCount"
+                name="bedCount"
+                value={formData.bedCount}
+                className="rounded-lg border border-gray-600 bg-[#2a2547] px-4 py-2 text-gray-300 cursor-not-allowed"
+                placeholder="Sẽ tự động cập nhật khi chọn loại phòng"
+                readOnly
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
               <label htmlFor="status" className="text-lg font-medium">
                 Trạng thái
               </label>
@@ -159,9 +233,9 @@ const CreateRoomPage = () => {
                 onChange={handleInputChange}
                 className="rounded-lg border border-gray-600 bg-[#201b39] px-4 py-2 focus:border-blue-500 focus:outline-none"
               >
-                <option value="Available">Còn trống (Available)</option>
-                <option value="Occupied">Đã có người (Occupied)</option>
-                <option value="Maintenance">Đang bảo trì (Maintenance)</option>
+                <option value="available">Còn trống</option>
+                <option value="occupied">Đã đủ người</option>
+                <option value="maintenance">Đang bảo trì</option>
               </select>
             </div>
 

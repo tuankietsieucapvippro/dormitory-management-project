@@ -37,10 +37,13 @@ import {
   
     @Column("integer", { name: "currentwatermeter" })
     currentwatermeter: number;
-  
+
+    @Column("integer", { name: "roomid" })
+    roomid: number;
+
     @OneToMany(() => Invoice, (invoice) => invoice.utilities)
     invoices: Invoice[];
-  
+
     @ManyToOne(() => Room, (room) => room.utilities, { onDelete: "CASCADE", nullable: false }) // Đảm bảo khóa ngoại không null
     @JoinColumn([{ name: "roomid", referencedColumnName: "roomid" }])
     room: Room;

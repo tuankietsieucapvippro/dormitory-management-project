@@ -178,6 +178,30 @@ const RoomTable = ({
     }
   };
 
+  const getGenderDisplay = (gender: string) => {
+    switch (gender) {
+      case "Male":
+        return "Nam";
+      case "Female":
+        return "Nữ";
+      default:
+        return "N/A";
+    }
+  };
+
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case "available":
+        return "Còn trống";
+      case "occupied":
+        return "Đã đủ người";
+      case "maintenance":
+        return "Bảo trì";
+      default:
+        return status || "N/A";
+    }
+  };
+
   const goToPage = (page: number) => {
     if (page < 1) page = 1;
     if (page > totalPages) page = totalPages;
@@ -361,7 +385,7 @@ const RoomTable = ({
                 {room.roomtype?.roomtypename || "N/A"}
               </td>
               <td className="border border-gray-300 px-4 py-2">
-                {room.roomtype?.gender || "N/A"}
+                {getGenderDisplay(room.roomtype?.gender || "")}
               </td>
               <td className="border border-gray-300 px-4 py-2">
                 {room.roomtype?.price
@@ -376,7 +400,7 @@ const RoomTable = ({
               </td>
               <td className="border border-gray-300 px-4 py-2">
                 <span className={getStatusClass(room.status || "")}>
-                  {room.status}
+                  {getStatusDisplay(room.status || "")}
                 </span>
               </td>
               <td className="border border-gray-300 px-4 py-2">

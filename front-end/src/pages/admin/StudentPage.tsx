@@ -32,7 +32,7 @@ const StudentPage = () => {
     <Layout>
       <div className="flex h-full flex-col bg-[#130f21] text-[#e1dce4]">
         <h1 className="-mt-5 mb-2 p-5 text-center text-3xl font-bold uppercase">
-          Sinh viên
+          Quản lý sinh viên
         </h1>
 
         <div className="px-8">

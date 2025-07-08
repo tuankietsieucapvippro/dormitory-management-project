@@ -18,15 +18,19 @@ import {
     unique: true,
   })
   @Index("room_pkey", ["roomid"], { unique: true })
+  @Index("room_roomname_buildingid_key", ["roomname", "buildingid"], { unique: true })
   @Entity("room", { schema: "public" })
   @Check("status IN ('available', 'occupied', 'maintenance')")
   export class Room {
     @PrimaryGeneratedColumn({ type: "integer", name: "roomid" })
     roomid: number;
-  
+
     @Column("integer", { name: "buildingid" }) // Khóa ngoại không nên nullable trừ khi DB cho phép
     buildingid: number;
-  
+
+    @Column("integer", { name: "roomtypeid" }) // Khóa ngoại không nên nullable trừ khi DB cho phép
+    roomtypeid: number;
+
     @Column("character varying", { name: "roomname", length: 30 })
     roomname: string;
   

@@ -1,14 +1,14 @@
 import { IsNotEmpty, IsEmail, Length, IsEnum, IsDateString, IsOptional, Matches, IsInt, IsPositive } from 'class-validator';
 
 enum Gender {
-  Male = 'male',
-  Female = 'female'
+  Male = 'Male',
+  Female = 'Female'
 }
 
 enum StudentStatus {
-  Pending = 'Pending',
-  Approved = 'Approved',
-  Rejected = 'Rejected'
+  Pending = 'pending',
+  Approved = 'approved',
+  Rejected = 'rejected'
 }
 
 export class CreateStudentDto {
@@ -62,9 +62,6 @@ export class CreateStudentDto {
 
   @IsOptional()
   @IsEnum(StudentStatus, { message: 'Trạng thái không hợp lệ' })
-  // Sửa lại giá trị enum cho phù hợp với database constraint ('pending', 'approved', 'rejected')
-  // Hoặc đảm bảo StudentStatus enum dùng giá trị chữ thường. Hiện tại nó đang là chữ hoa chữ đầu.
-  // Tạm thời để frontend gửi 'pending' (chữ thường) và backend nhận string.
-  // Nếu muốn dùng enum chặt chẽ, cần sửa enum StudentStatus và entity Student.
-  status: string = 'pending'; // Đổi thành string và mặc định là 'pending'
+  // Enum StudentStatus đã được cập nhật để sử dụng giá trị chữ thường khớp với database constraint
+  status: StudentStatus = StudentStatus.Pending; // Sử dụng enum với giá trị mặc định 'pending'
 }

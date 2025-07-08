@@ -32,7 +32,10 @@ import {
   
     @Column("text", { name: "description", nullable: true })
     description: string | null;
-  
+
+    @Column("integer", { name: "userid", nullable: true })
+    userid: number | null;
+
     @ManyToOne(() => Account, (account) => account.systemlogs, { nullable: true }) // Cho phép user là null
     @JoinColumn([{ name: "userid", referencedColumnName: "accountid" }]) // TypeORM thường tự suy luận nullable từ quan hệ
     user: Account | null; // Cho phép user là null

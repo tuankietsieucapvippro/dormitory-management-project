@@ -82,12 +82,31 @@ const RoomTypeTable = ({ searchTerm }: RoomTypeTableProps) => {
     setCurrentPage(newPage);
   };
 
+  const getGenderDisplay = (gender: string) => {
+    switch (gender) {
+      case "male":
+      case "Male":
+        return "Nam";
+      case "female":
+      case "Female":
+        return "Nữ";
+      case "mixed":
+      case "Mixed":
+        return "Hỗn hợp";
+      default:
+        return gender || "N/A";
+    }
+  };
+
   const getGenderBadgeClass = (gender: string) => {
     switch (gender) {
+      case "male":
       case "Male":
         return "bg-blue-700/30 text-blue-400";
+      case "female":
       case "Female":
         return "bg-pink-700/30 text-pink-400";
+      case "mixed":
       case "Mixed":
         return "bg-purple-700/30 text-purple-400";
       default:
@@ -186,7 +205,7 @@ const RoomTypeTable = ({ searchTerm }: RoomTypeTableProps) => {
                     <span
                       className={`rounded px-2 py-1 text-sm ${getGenderBadgeClass(roomType.gender)}`}
                     >
-                      {roomType.gender}
+                      {getGenderDisplay(roomType.gender)}
                     </span>
                   </td>
                   <td className="border border-gray-600 px-4 py-2">

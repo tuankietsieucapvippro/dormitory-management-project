@@ -26,6 +26,12 @@ interface RoomRegistration {
   checkoutdate?: string;
   status: string;
   room?: Room;
+  semester?: {
+    semesterid: number;
+    semestername: string;
+    startdate: string;
+    enddate: string;
+  };
 }
 
 interface Room {
@@ -51,13 +57,7 @@ const StudentDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [student, setStudent] = useState<Student | null>(null);
-  const [debugInfo, setDebugInfo] = useState<any>(null);
 
-  // Hàm hiển thị thông tin debug
-  const showDebugInfo = (data: any) => {
-    console.log("Debug Info:", data);
-    setDebugInfo(data);
-  };
 
   useEffect(() => {
     const fetchStudent = async () => {
@@ -79,12 +79,7 @@ const StudentDetailPage = () => {
         // The actual student data might be in response.data.data due to API structure
         const studentData = response.data.data || response.data;
 
-        showDebugInfo({
-          endpoint: `/students/${id}`,
-          responseData: response.data,
-          studentData: studentData,
-          step: "Fetch Student Data",
-        });
+
 
         if (!studentData) {
           throw new Error(`Không tìm thấy thông tin sinh viên với ID: ${id}`);
@@ -100,6 +95,13 @@ const StudentDetailPage = () => {
           studentData.roomregistrations = [];
         }
 
+        // Debug: Log room registrations data
+        console.log("Student roomregistrations:", studentData.roomregistrations);
+        if (studentData.roomregistrations && studentData.roomregistrations.length > 0) {
+          console.log("First room registration:", studentData.roomregistrations[0]);
+          console.log("Room registration statuses:", studentData.roomregistrations.map(reg => reg.status));
+        }
+
         setStudent(studentData);
       } catch (error: any) {
         console.error("Có lỗi xảy ra khi lấy thông tin sinh viên:", error);
@@ -107,11 +109,7 @@ const StudentDetailPage = () => {
           error.message ||
             "Không thể tải thông tin sinh viên. Vui lòng thử lại sau.",
         );
-        showDebugInfo({
-          error: error.message,
-          stack: error.stack,
-          step: "Error",
-        });
+
       } finally {
         setLoading(false);
       }
@@ -127,19 +125,82 @@ const StudentDetailPage = () => {
 
   // Lấy thông tin phòng hiện tại của sinh viên (phòng có trạng thái active)
   const getCurrentRoom = () => {
+    console.log("getCurrentRoom called");
+    console.log("student?.roomregistrations:", student?.roomregistrations);
+
     if (!student?.roomregistrations || student.roomregistrations.length === 0) {
+      console.log("No room registrations found");
       return null;
     }
 
-    // Tìm đăng ký phòng có trạng thái active
-    return student.roomregistrations.find(
-      (reg) =>
-        reg.status.toLowerCase() === "active" ||
-        reg.status.toLowerCase() === "đang ở",
+    console.log("Room registrations found:", student.roomregistrations.length);
+    console.log("All room registration statuses:", student.roomregistrations.map((reg: any) => reg.status));
+
+    // Tìm đăng ký phòng có trạng thái active (thử nhiều trạng thái có thể)
+    const activeRoom = student.roomregistrations.find(
+      (reg: any) => {
+        const status = reg.status.toLowerCase();
+        return status === "active" ||
+               status === "đang ở" ||
+               status === "approved" ||
+               status === "confirmed" ||
+               status === "occupied";
+      }
     );
+
+    // Nếu không tìm thấy active room, lấy room registration gần nhất
+    if (!activeRoom && student.roomregistrations.length > 0) {
+      console.log("No active room found, using latest registration");
+      return student.roomregistrations[student.roomregistrations.length - 1];
+    }
+
+    console.log("Active room found:", activeRoom);
+    return activeRoom;
   };
 
   const currentRoom = getCurrentRoom();
+
+  // Helper functions để hiển thị tiếng Việt
+  const getGenderDisplay = (gender: string) => {
+    switch (gender) {
+      case "Male":
+        return "Nam";
+      case "Female":
+        return "Nữ";
+      default:
+        return gender || "---";
+    }
+  };
+
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "Chờ duyệt";
+      case "approved":
+        return "Đã duyệt";
+      case "rejected":
+        return "Từ chối";
+      default:
+        return status || "---";
+    }
+  };
+
+  const getRoomStatusDisplay = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "available":
+        return "Còn trống";
+      case "occupied":
+        return "Đã có người ở";
+      case "maintenance":
+        return "Đang bảo trì";
+      case "reserved":
+        return "Đã đặt trước";
+      case "full":
+        return "Đã đầy";
+      default:
+        return status || "---";
+    }
+  };
 
   if (loading) {
     return (
@@ -159,13 +220,6 @@ const StudentDetailPage = () => {
           <p className="mb-4 text-lg text-red-500">
             {error || "Không tìm thấy thông tin sinh viên"}
           </p>
-          <div className="mb-6 max-w-2xl rounded-lg bg-[#201b39] p-4 text-sm">
-            <pre className="overflow-auto whitespace-pre-wrap">
-              {debugInfo
-                ? JSON.stringify(debugInfo, null, 2)
-                : "Không có thông tin debug"}
-            </pre>
-          </div>
           <button
             onClick={() => navigate("/admin/student")}
             className="rounded-lg bg-blue-500 px-6 py-2 font-medium hover:bg-blue-600"
@@ -179,7 +233,7 @@ const StudentDetailPage = () => {
 
   return (
     <Layout>
-      <div className="flex h-full flex-col gap-6 bg-[#130f21] p-6 text-[#e1dce4]">
+      <div className="flex h-auto flex-col gap-6 bg-[#130f21] p-6 text-[#e1dce4]">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Thông tin sinh viên</h1>
           <button
@@ -198,7 +252,7 @@ const StudentDetailPage = () => {
               <InfoItem label="Mã sinh viên" value={student.studentcode} />
               <InfoItem label="Họ và tên" value={student.fullname} />
               <InfoItem label="Lớp" value={student.class} />
-              <InfoItem label="Giới tính" value={student.gender} />
+              <InfoItem label="Giới tính" value={getGenderDisplay(student.gender || "")} />
               <InfoItem
                 label="Ngày sinh"
                 value={
@@ -210,7 +264,7 @@ const StudentDetailPage = () => {
               <InfoItem label="Số điện thoại" value={student.phonenumber} />
               <InfoItem label="Địa chỉ" value={student.address} />
               <InfoItem label="Số CCCD" value={student.idcard} />
-              <InfoItem label="Trạng thái" value={student.status} />
+              <InfoItem label="Trạng thái" value={getStatusDisplay(student.status || "")} />
             </div>
           </div>
 
@@ -225,10 +279,6 @@ const StudentDetailPage = () => {
                 />
                 <InfoItem label="Phòng" value={currentRoom.room.roomname} />
                 <InfoItem
-                  label="Tầng"
-                  value={currentRoom.room.floor?.toString()}
-                />
-                <InfoItem
                   label="Loại phòng"
                   value={currentRoom.room.roomtype?.roomtypename}
                 />
@@ -242,42 +292,25 @@ const StudentDetailPage = () => {
                 />
                 <InfoItem
                   label="Trạng thái phòng"
-                  value={currentRoom.room.status}
-                />
-                <InfoItem
-                  label="Ngày đăng ký"
-                  value={
-                    currentRoom.registerdate
-                      ? formatDate(currentRoom.registerdate)
-                      : "---"
-                  }
-                />
-                <InfoItem
-                  label="Ngày hết hạn"
-                  value={
-                    currentRoom.checkoutdate
-                      ? formatDate(currentRoom.checkoutdate)
-                      : "---"
-                  }
+                  value={getRoomStatusDisplay(currentRoom.room.status)}
                 />
               </div>
             ) : (
-              <p className="text-gray-400">Chưa đăng ký phòng</p>
+              <div>
+                <p className="text-gray-400 mb-2">Chưa đăng ký phòng</p>
+                {/* Debug info - sẽ xóa sau khi fix */}
+                {student?.roomregistrations && student.roomregistrations.length > 0 && (
+                  <div className="text-xs text-yellow-400">
+                    <p>Debug: Có {student.roomregistrations.length} đăng ký phòng</p>
+                    <p>Trạng thái: {student.roomregistrations.map((reg: any) => reg.status).join(", ")}</p>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
 
-        {/* Debug info section */}
-        <div className="mt-4 rounded-lg bg-[#201b39] p-4 text-xs">
-          <details>
-            <summary className="cursor-pointer font-medium">
-              Thông tin debug
-            </summary>
-            <pre className="mt-2 overflow-auto whitespace-pre-wrap">
-              {JSON.stringify(debugInfo, null, 2)}
-            </pre>
-          </details>
-        </div>
+
       </div>
     </Layout>
   );

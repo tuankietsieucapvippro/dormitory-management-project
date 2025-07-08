@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, HttpStatus, HttpCode, ValidationPipe, UsePipes, NotFoundException, BadRequestException } from '@nestjs/common';
 import { RoomService } from './room.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
@@ -9,12 +9,23 @@ export class RoomController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @UsePipes(new ValidationPipe({ transform: true }))
   async create(@Body() createRoomDto: CreateRoomDto) {
-    return {
-      statusCode: HttpStatus.CREATED,
-      message: 'Tạo phòng thành công',
-      data: await this.roomService.create(createRoomDto)
-    };
+    try {
+      return {
+        statusCode: HttpStatus.CREATED,
+        message: 'Tạo phòng thành công',
+        data: await this.roomService.create(createRoomDto)
+      };
+    } catch (error) {
+      if (error.code === '23505') { // Unique violation
+        throw new BadRequestException('Tên phòng đã tồn tại trong tòa nhà này');
+      }
+      if (error.code === '23503') { // Foreign key violation
+        throw new BadRequestException('Tòa nhà hoặc loại phòng không tồn tại');
+      }
+      throw new BadRequestException(`Không thể tạo phòng: ${error.message}`);
+    }
   }
 
   @Get()
@@ -85,26 +96,54 @@ export class RoomController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Lấy thông tin phòng thành công',
-      data: await this.roomService.findOne(+id)
-    };
+    try {
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Lấy thông tin phòng thành công',
+        data: await this.roomService.findOne(+id)
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new NotFoundException(`Không tìm thấy phòng với ID ${id}`);
+    }
   }
 
   @Patch(':id')
+  @UsePipes(new ValidationPipe({ transform: true }))
   async update(@Param('id') id: string, @Body() updateRoomDto: UpdateRoomDto) {
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Cập nhật phòng thành công',
-      data: await this.roomService.update(+id, updateRoomDto)
-    };
+    try {
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Cập nhật phòng thành công',
+        data: await this.roomService.update(+id, updateRoomDto)
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      if (error.code === '23505') { // Unique violation
+        throw new BadRequestException('Tên phòng đã tồn tại trong tòa nhà này');
+      }
+      if (error.code === '23503') { // Foreign key violation
+        throw new BadRequestException('Tòa nhà hoặc loại phòng không tồn tại');
+      }
+      throw new BadRequestException(`Không thể cập nhật phòng: ${error.message}`);
+    }
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string) {
-    await this.roomService.remove(+id);
+    try {
+      await this.roomService.remove(+id);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(`Không thể xóa phòng: ${error.message}`);
+    }
   }
 
   @Get('count/by-building/:buildingId')
